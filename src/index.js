@@ -3,13 +3,28 @@ import ReactDOM from "react-dom/client"
 import "./index.css"
 import App from "./App"
 import { ChakraProvider } from "@chakra-ui/react"
-import { MoralisProvider } from "react-moralis"
+import { DAppProvider, Goerli, Localhost } from "@usedapp/core"
+import { getDefaultProvider } from "ethers"
 
 const root = ReactDOM.createRoot(document.getElementById("root"))
+
+const config = {
+  readOnlyChainId: Goerli.chainId,
+  readOnlyUrls: {
+    [Goerli.chainId]: getDefaultProvider("goerli"),
+  },
+}
+const localHostconfig = {
+  readOnlyChainId: Localhost.chainId,
+  readOnlyUrls: {
+    [Localhost.chainId]: "http://127.0.0.1:8545",
+  },
+}
+
 root.render(
-  <MoralisProvider initializeOnMount={false}>
-    <ChakraProvider>
+  <ChakraProvider>
+    <DAppProvider config={localHostconfig}>
       <App />
-    </ChakraProvider>
-  </MoralisProvider>
+    </DAppProvider>
+  </ChakraProvider>
 )

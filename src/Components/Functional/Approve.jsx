@@ -6,10 +6,10 @@ import {
   Button,
   Box,
 } from "@chakra-ui/react"
-import { Card } from "../Cards/Card"
+import { Card } from "../cards/Card"
 import { useForm } from "react-hook-form"
 
-export const Approve = () => {
+export const Approve = ({ contract: contract }) => {
   const {
     register,
     handleSubmit,

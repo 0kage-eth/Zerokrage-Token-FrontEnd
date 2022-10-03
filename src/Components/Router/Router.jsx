@@ -1,9 +1,9 @@
 import { createBrowserRouter } from "react-router-dom"
-import { Home } from "../../Pages/Home"
-import { Events } from "../../Pages/Events"
-import { Dashboard } from "../../Pages/Dashboard"
-import { Main } from "../../Pages/Main"
-import { Token } from "../../Pages/Token"
+import { Home } from "../../pages/Home"
+import { Events } from "../../pages/Events"
+import { Dashboard } from "../../pages/Dashboard"
+import { Main } from "../../pages/Main"
+import { Token } from "../../pages/Token"
 
 export const routerConfig = createBrowserRouter([
   {

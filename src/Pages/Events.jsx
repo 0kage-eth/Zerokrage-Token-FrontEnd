@@ -1,4 +1,4 @@
-import { PageHeader } from "../Components/Headers/PageHeader"
+import { PageHeader } from "../components/headers/PageHeader"
 
 export const Events = () => {
   return (

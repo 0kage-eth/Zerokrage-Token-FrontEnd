@@ -7,10 +7,10 @@ import {
   Button,
   Input,
 } from "@chakra-ui/react"
-import { Card } from "../Cards/Card"
+import { Card } from "../cards/Card"
 import { useForm } from "react-hook-form"
 
-export const Purchase = () => {
+export const Purchase = ({ contract: contract }) => {
   const {
     register,
     handleSubmit,

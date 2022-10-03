@@ -13,7 +13,7 @@ import {
   UnorderedList,
 } from "@chakra-ui/react"
 import { useColorModeValue } from "@chakra-ui/react"
-import { Card } from "../Cards/Card"
+import { Card } from "../cards/Card"
 
 export const Profile = () => {
   return (

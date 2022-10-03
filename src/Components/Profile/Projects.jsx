@@ -10,7 +10,7 @@ import {
   Text,
 } from "@chakra-ui/react"
 import { PROJECTS } from "../../constants"
-import { Card } from "../Cards/Card"
+import { Card } from "../cards/Card"
 
 export const Projects = () => {
   return (
