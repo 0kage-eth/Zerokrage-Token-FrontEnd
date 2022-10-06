@@ -8,20 +8,45 @@ import {
 } from "@chakra-ui/react"
 import { Card } from "../cards/Card"
 import { useForm } from "react-hook-form"
+import { utils } from "ethers"
+import { useMoralis, useWeb3Contract } from "react-moralis"
 
-export const Approve = ({ contract: contract }) => {
+export const Approve = ({ abi, address, updateBalance }) => {
   const {
     register,
     handleSubmit,
     formState: { isSubmitting, errors },
   } = useForm()
 
+  const { chainId, account } = useMoralis()
+  const { runContractFunction: approve, isFetching } = useWeb3Contract()
+
+  const successHandler = () => {
+    // insert success notification
+    console.log(`txn completed `)
+    updateBalance()
+  }
+
+  const errorHandler = (e) => {
+    // insert error notification
+    console.log("error")
+  }
+
   const onSubmit = (values) => {
-    return new Promise((resolve) => {
-      setTimeout(() => {
-        console.log(values)
-        resolve()
-      }, 1000)
+    const approveParams = {
+      abi: abi,
+      contractAddress: address,
+      params: {
+        spender: values.spender,
+        amount: utils.parseEther(values.amount),
+      },
+      functionName: "approve",
+    }
+
+    approve({
+      params: approveParams,
+      onSuccess: successHandler,
+      onError: errorHandler,
     })
   }
 
@@ -65,7 +90,7 @@ export const Approve = ({ contract: contract }) => {
             type="submit"
             colorScheme="blue"
             mt={4}
-            isLoading={isSubmitting}>
+            isLoading={isFetching}>
             Approve
           </Button>
         </form>

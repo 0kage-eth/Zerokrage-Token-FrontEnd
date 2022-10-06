@@ -10,7 +10,7 @@ import {
 import { Card } from "../cards/Card"
 import { useForm } from "react-hook-form"
 
-export const Purchase = ({ contract: contract }) => {
+export const Purchase = ({ abi, address }) => {
   const {
     register,
     handleSubmit,

@@ -8,21 +8,59 @@ import {
 } from "@chakra-ui/react"
 import { Card } from "../cards/Card"
 import { useForm } from "react-hook-form"
+import { useMoralis, useWeb3Contract } from "react-moralis"
+import { utils } from "ethers"
+import { useState } from "react"
 
-export const Transfer = ({ contract: contract }) => {
+export const Transfer = ({ abi, address, updateBalance }) => {
   const {
     register,
     handleSubmit,
     formState: { errors, isSubmitting },
   } = useForm()
 
+  const [isComplete, setIsComplete] = useState(false)
+
+  const {
+    runContractFunction: transfer,
+    isFetching,
+    isLoading,
+  } = useWeb3Contract()
+
+  const successHandler = async (txn) => {
+    console.log("txn details on transfer success", txn)
+
+    const receipt = await txn.wait(1)
+    console.log("transfer receipt ", receipt)
+    setIsComplete(true)
+    updateBalance()
+  }
+  const errorHandler = (e) => {
+    console.log("error", e)
+  }
   const onSubmit = (values) => {
-    return new Promise((resolve) => {
-      setTimeout(() => {
-        console.log(values)
-        resolve()
-      }, 1000)
+    const options = {
+      params: {
+        to: values.receiver,
+        amount: utils.parseEther(values.amount),
+      },
+      functionName: "transfer",
+      abi: abi,
+      contractAddress: address,
+    }
+    setIsComplete(false)
+    transfer({
+      params: options,
+      onSuccess: successHandler,
+      onError: errorHandler,
     })
+
+    // return new Promise((resolve) => {
+    //   setTimeout(() => {
+    //     console.log(values)
+    //     resolve()
+    //   }, 1000)
+    // })
   }
 
   return (
@@ -61,7 +99,7 @@ export const Transfer = ({ contract: contract }) => {
             colorScheme="blue"
             mt={4}
             type="submit"
-            isLoading={isSubmitting}>
+            isLoading={isLoading || isComplete}>
             Transfer
           </Button>
         </form>

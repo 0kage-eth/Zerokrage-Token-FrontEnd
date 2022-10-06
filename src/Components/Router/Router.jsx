@@ -22,10 +22,10 @@ export const routerConfig = createBrowserRouter([
         path: "events",
         element: <Events />,
       },
-      {
-        path: "dashboard",
-        element: <Dashboard />,
-      },
+      // {
+      //   path: "dashboard",
+      //   element: <Dashboard />,
+      // },
     ],
   },
 ])

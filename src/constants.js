@@ -1,5 +1,5 @@
-export const PAGES = ["Token", "Events", "Dashboard"]
-export const PAGE_LINKS = ["token", "events", "dashboard"]
+export const PAGES = ["Token", "Events" /*, "Dashboard"*/]
+export const PAGE_LINKS = ["token", "events" /*, "dashboard"*/]
 
 export const PROJECTS = [
   {
@@ -83,3 +83,6 @@ export const PROJECTS = [
     status: "soon",
   },
 ]
+
+export const SUBGRAPH_URI =
+  "https://api.studio.thegraph.com/query/34697/zerokage-token/v0.0.4"

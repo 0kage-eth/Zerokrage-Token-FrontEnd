@@ -8,7 +8,7 @@ import {
 } from "@chakra-ui/react"
 import * as React from "react"
 import { Link as RouterLink } from "react-router-dom"
-import { MetamaskConnect } from "../web3/MetamaskConnect"
+import { Connect } from "../web3/Connect"
 
 // import { ConnectButton } from "web3uikit"
 
@@ -41,8 +41,8 @@ export const Header = ({ pages, pageLinks }) => {
               )
             })}
           </ButtonGroup>
-          <MetamaskConnect />
         </HStack>
+        <Connect />
       </Flex>
     </Box>
     // </Box>
