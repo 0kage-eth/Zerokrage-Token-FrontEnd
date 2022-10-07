@@ -24,6 +24,10 @@ export const Connect = ({ chainId, ...props }) => {
 
     const provider = window.localStorage.getItem("provider")
 
+    if (provider) {
+      setWeb3Status("connected")
+    }
+
     if (
       !isWeb3Enabled &&
       !isWeb3EnableLoading &&

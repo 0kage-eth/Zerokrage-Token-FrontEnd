@@ -17,27 +17,28 @@ import {
 } from "@chakra-ui/react"
 
 export const SimpleTable = (props) => {
-  const { data, ...others } = props
+  const { headers, data, ...others } = props
   return (
     <Table {...others}>
       <Thead>
         <Tr>
-          <Th>Owner</Th>
-          <Th>Spender</Th>
-          <Th>Value</Th>
+          {headers.map((header, id) => (
+            <Th key={id}>{header}</Th>
+          ))}
         </Tr>
       </Thead>
       <Tbody>
         {data.map((row) => (
           <Tr key={row.id}>
-            <Td>
+            {/* <Td>
               <Text>{row.owner}</Text>
+            </Td> */}
+
+            <Td>
+              <Text fontSize="sm">{row.spender}</Text>
             </Td>
             <Td>
-              <Text>{row.spender}</Text>
-            </Td>
-            <Td>
-              <Text>{row.value}</Text>
+              <Text fontSize="sm">{row.value}</Text>
             </Td>
           </Tr>
         ))}

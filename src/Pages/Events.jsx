@@ -1,7 +1,7 @@
 import { Box, SimpleGrid, Heading, Container } from "@chakra-ui/react"
 import { PageHeader } from "../components/headers/PageHeader"
 import { useMoralis } from "react-moralis"
-import { ApprovalTable } from "../components/graph/ApprovalsTable"
+import { ApprovalsTable } from "../components/graph/ApprovalsTable"
 import { TransfersTable } from "../components/graph/TransfersTable"
 import { useEffect } from "react"
 
@@ -28,8 +28,8 @@ export const Events = () => {
             columns={{ base: 1, md: 2 }}
             gap={{ base: "5", md: "6" }}
             py={{ base: "50", md: "50" }}>
-            {/* <ApprovalTable />
-            <TransfersTable /> */}
+            <ApprovalsTable />
+            <TransfersTable />
           </SimpleGrid>
         </Container>
       )}

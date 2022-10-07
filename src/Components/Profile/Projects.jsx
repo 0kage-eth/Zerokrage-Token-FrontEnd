@@ -11,6 +11,7 @@ import {
 } from "@chakra-ui/react"
 import { PROJECTS } from "../../constants"
 import { Card } from "../cards/Card"
+import { Link as RouterLink } from "react-router-dom"
 
 export const Projects = () => {
   return (
@@ -41,6 +42,7 @@ export const Projects = () => {
                   </HStack>
                   <Button
                     to={member.link}
+                    as={RouterLink}
                     isDisabled={member.status === "soon"}>
                     Enter
                   </Button>

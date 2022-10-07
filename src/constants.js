@@ -6,7 +6,7 @@ export const PROJECTS = [
     id: 1,
     name: "ZeroKage Token Controller",
     desc: "Get 0KAGE tokens, check balance & past transactions",
-    link: "https://etherscan.io/",
+    link: "/main/token",
     img: "https://res.cloudinary.com/crunchbase-production/image/upload/c_lpad,f_auto,q_auto:eco,dpr_1/v1476103033/xfu7exy5y6rkscsm1kns.png",
     status: "done",
   },

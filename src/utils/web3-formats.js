@@ -9,11 +9,18 @@ export const addressFormat = (address, numLetters) => {
 }
 
 export const roundDecimals = (inputString, decimals) => {
-  const decimalPosition = inputString.indexOf(".")
-  const roundedPosition = decimals
-    ? decimalPosition + decimals
-    : decimalPosition + 2
-  return inputString.substring(0, roundedPosition)
+  if (inputString != null) {
+    const decimalPosition = inputString.indexOf(".")
+    if (decimalPosition >= 0) {
+      const roundedPosition = decimals
+        ? decimalPosition + decimals
+        : decimalPosition + 2
+      return inputString.substring(0, roundedPosition)
+    } else {
+      return inputString
+    }
+  }
+  return inputString
 }
 export const balanceInEther = (balanceinHex, decimals) => {
   if (balanceinHex) {

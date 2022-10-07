@@ -69,15 +69,21 @@ export const Token = () => {
       {chainId && account && (
         <Container>
           <PageHeader title="0KAGE Token" subtitle="Token usage metrics" />
-          <SimpleGrid
+          {/* <SimpleGrid
             columns={{ base: 1, md: 3 }}
             gap={{ base: "5", md: "6" }}
             py={{ base: "50", md: "50" }}>
             <Stat label="0KAGE Balance" value={balance} />
             <Stat label="Transfers" value={6} />
             <Stat label="Approvals" value={3} />
-          </SimpleGrid>
-          <Stack direction="column" spacing="4" w="full">
+          </SimpleGrid> */}
+          <Stat
+            label="0KAGE Balance"
+            value={balance}
+            mt={4}
+            textAlign="center"
+          />
+          <Stack direction="column" spacing="4" w="full" mt={6}>
             <Transfer
               abi={zeroKageAbi}
               address={zeroKageAddress}
