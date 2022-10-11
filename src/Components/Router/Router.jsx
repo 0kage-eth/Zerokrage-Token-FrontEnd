@@ -4,6 +4,10 @@ import { Events } from "../../pages/Events"
 import { Dashboard } from "../../pages/Dashboard"
 import { Main } from "../../pages/Main"
 import { Token } from "../../pages/Token"
+import { Dex } from "../../pages/Dex"
+import { Swap } from "../../pages/Swap"
+import { Liquidity } from "../../pages/Liquidity"
+import { DexEvents } from "../../pages/DexEvents"
 
 export const routerConfig = createBrowserRouter([
   {
@@ -26,6 +30,18 @@ export const routerConfig = createBrowserRouter([
       //   path: "dashboard",
       //   element: <Dashboard />,
       // },
+    ],
+  },
+  {
+    path: "dex",
+    element: <Dex />,
+    children: [
+      {
+        path: "swap",
+        element: <Swap />,
+      },
+      { path: "liquidity", element: <Liquidity /> },
+      { path: "dex-events", element: <DexEvents /> },
     ],
   },
 ])

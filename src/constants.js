@@ -1,5 +1,17 @@
 export const PAGES = ["Token", "Events" /*, "Dashboard"*/]
 export const PAGE_LINKS = ["token", "events" /*, "dashboard"*/]
+export const DEX_PAGES = ["Swap", "Liquidity", "Events" /*, "Dashboard"*/]
+export const DEX_PAGE_LINKS = [
+  "swap",
+  "liquidity",
+  "dex-events" /*, "Dashboard"*/,
+]
+
+export const CHAINS = [
+  { chainId: 1, name: "mainnet" },
+  { chainId: 5, name: "goerli" },
+  { chainId: 31337, name: "localhost" },
+]
 
 export const PROJECTS = [
   {
@@ -14,7 +26,7 @@ export const PROJECTS = [
     id: 2,
     name: "ETH-0KAGE Dex",
     desc: "Swap your 0KAGE tokens, add and remove liquidity ",
-    link: "https://etherscan.io/",
+    link: "/dex/swap",
     img: "https://res.cloudinary.com/crunchbase-production/image/upload/c_lpad,f_auto,q_auto:eco,dpr_1/v1476103033/xfu7exy5y6rkscsm1kns.png",
     status: "done",
   },
