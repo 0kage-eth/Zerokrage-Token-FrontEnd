@@ -13,10 +13,11 @@ import { useMoralis, useWeb3Contract } from "react-moralis"
 import { utils } from "ethers"
 import { useState } from "react"
 import { WaitingModal } from "../modals/WaitingModal"
+import { getNetworkName } from "../../utils/misc"
 
 export const Transfer = ({ abi, address, updateBalance }) => {
   const [isConfirming, setIsConfirming] = useState(false)
-
+  const { chainId } = useMoralis()
   const toast = useToast()
   const {
     register,
@@ -24,11 +25,7 @@ export const Transfer = ({ abi, address, updateBalance }) => {
     formState: { errors },
   } = useForm()
 
-  const {
-    runContractFunction: transfer,
-    isFetching,
-    isLoading,
-  } = useWeb3Contract()
+  const { runContractFunction: transfer, isLoading } = useWeb3Contract()
 
   const successHandler = async (txn) => {
     setIsConfirming(true)
@@ -122,7 +119,7 @@ export const Transfer = ({ abi, address, updateBalance }) => {
           </form>
         </Box>
       </Card>
-      <WaitingModal isOpen={isConfirming} />
+      <WaitingModal isOpen={isConfirming} network={getNetworkName(chainId)} />
     </Box>
   )
 }

@@ -7,11 +7,12 @@ export const TransactionStatus = {
 
 /**
  * @notice returns network name for a given chain Id
- * @param {number} chainId chain id of the chain
+ * @param {string} chainId chain id of the chain
  *
  * @returns network name, if valid chain id or null
  */
 export const getNetworkName = (chainId) => {
+  if (!chainId) return null
   const chainIdInt = parseInt(chainId)
   const chain = CHAINS.find((x) => x.chainId == chainIdInt)
 

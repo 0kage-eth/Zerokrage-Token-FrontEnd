@@ -1,10 +1,10 @@
 export const PAGES = ["Token", "Events" /*, "Dashboard"*/]
 export const PAGE_LINKS = ["token", "events" /*, "dashboard"*/]
-export const DEX_PAGES = ["Swap", "Liquidity", "Events" /*, "Dashboard"*/]
+export const DEX_PAGES = ["Swap", "Liquidity", "Dashoard" /*, "Dashboard"*/]
 export const DEX_PAGE_LINKS = [
   "swap",
   "liquidity",
-  "dex-events" /*, "Dashboard"*/,
+  "dashboard" /*, "Dashboard"*/,
 ]
 
 export const CHAINS = [

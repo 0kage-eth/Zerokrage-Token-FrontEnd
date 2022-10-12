@@ -12,6 +12,7 @@ import { useForm } from "react-hook-form"
 import { Card } from "../cards/Card"
 import { utils } from "ethers"
 import { WaitingModal } from "../modals/WaitingModal"
+import { getNetworkName } from "../../utils/misc"
 import { useState } from "react"
 
 export const IncreaseApproval = ({ abi, address }) => {
@@ -112,7 +113,7 @@ export const IncreaseApproval = ({ abi, address }) => {
           </form>
         </Box>
       </Card>
-      <WaitingModal isOpen={isConfirming} />
+      <WaitingModal isOpen={isConfirming} network={getNetworkName(chainId)} />
     </Box>
   )
 }

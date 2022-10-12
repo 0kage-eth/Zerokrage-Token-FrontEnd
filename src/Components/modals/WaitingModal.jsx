@@ -10,7 +10,7 @@ import {
   Center,
 } from "@chakra-ui/react"
 
-export const WaitingModal = ({ isOpen }) => {
+export const WaitingModal = ({ isOpen, network }) => {
   return (
     <>
       <Modal
@@ -31,8 +31,8 @@ export const WaitingModal = ({ isOpen }) => {
                   size="xl"
                 />
                 <Text fontSize="sm">
-                  Please wait while this transaction gets confirmed on Goerli
-                  Network. Speed depends on network congestion...
+                  {`Please wait while this transaction gets confirmed on ${network}
+                  Network. Speed depends on network congestion...`}
                 </Text>
               </VStack>
             </Center>

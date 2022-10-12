@@ -16,6 +16,7 @@ import { useMoralis, useWeb3Contract } from "react-moralis"
 import { useState } from "react"
 import { roundDecimals } from "../../utils/web3-formats"
 import { WaitingModal } from "../modals/WaitingModal"
+import { getNetworkName } from "../../utils/misc"
 
 export const Approve = ({ abi, address, updateBalance }) => {
   const [allowance, setAllowance] = useState(null)
@@ -28,7 +29,7 @@ export const Approve = ({ abi, address, updateBalance }) => {
     formState: { errors },
   } = useForm()
 
-  const { account } = useMoralis()
+  const { account, chainId } = useMoralis()
   const { runContractFunction, isFetching, isLoading } = useWeb3Contract()
 
   const successHandler = async (txnResponse) => {
@@ -161,7 +162,7 @@ export const Approve = ({ abi, address, updateBalance }) => {
           </form>
         </Box>
       </Card>
-      <WaitingModal isOpen={isConfirming} />
+      <WaitingModal isOpen={isConfirming} network={getNetworkName(chainId)} />
     </Box>
   )
 }
