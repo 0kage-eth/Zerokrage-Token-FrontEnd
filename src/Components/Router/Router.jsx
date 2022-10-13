@@ -7,6 +7,9 @@ import { Dex } from "../../pages/Dex"
 import { Swap } from "../../pages/Swap"
 import { Liquidity } from "../../pages/Liquidity"
 import { DexDashboard } from "../../pages/DexDashboard"
+import { StakingDashboard } from "../../pages/StakingDashboard"
+import { Staking } from "../../pages/Staking"
+import { StakingHome } from "../../pages/StakingHome"
 
 export const routerConfig = createBrowserRouter([
   {
@@ -41,6 +44,18 @@ export const routerConfig = createBrowserRouter([
       },
       { path: "liquidity", element: <Liquidity /> },
       { path: "dashboard", element: <DexDashboard /> },
+    ],
+  },
+
+  {
+    path: "staking",
+    element: <StakingHome />,
+    children: [
+      {
+        path: "stake",
+        element: <Staking />,
+      },
+      { path: "dashboard", element: <StakingDashboard /> },
     ],
   },
 ])

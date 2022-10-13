@@ -18,13 +18,16 @@ import {
 import { useEffect } from "react"
 import { useForm } from "react-hook-form"
 import { Card } from "../components/cards/Card"
+import { Link as RouterLink } from "react-router-dom"
+
 import { useMoralis, useWeb3Contract } from "react-moralis"
 import { useState } from "react"
 
 import zeroKageLocalAbi from "../contracts/localhost_ZeroKage.json"
 import zeroKageGoerliAbi from "../contracts/localhost_ZeroKage.json"
-import dexLocalAbi from "../contracts/localhost_DEX.json"
-import dexGoerliAbi from "../contracts/goerli_DEX.json"
+import stakeLocalAbi from "../contracts/localhost_StakingRewards.json"
+//import stakeGoerliAbi from "../contracts/goerli_DEX.json"
+import rKageLocalAbi from "../contracts/localhost_r0Kage.json"
 import { getNetworkName } from "../utils/misc"
 import addressList from "../contracts/addresses.json"
 import { ethers } from "ethers"
@@ -32,9 +35,12 @@ import { roundDecimals } from "../utils/web3-formats"
 import { WaitingModal } from "../components/modals/WaitingModal"
 import { ErrorTemplate } from "../components/errors/ErrorTemplate"
 
-export const Liquidity = () => {
+const DEXLINK = "/dex/swap"
+
+export const Staking = () => {
   const { account, chainId } = useMoralis()
   const toast = useToast()
+  const numChainId = parseInt(chainId)
 
   console.log("chain Id", chainId)
   const networkName = getNetworkName(chainId)
@@ -44,18 +50,33 @@ export const Liquidity = () => {
       ? zeroKageGoerliAbi
       : zeroKageLocalAbi
 
-  const dexAbi =
-    networkName && networkName === "goerli" ? dexGoerliAbi : dexLocalAbi
+  // TO DO - NEED TO ADD GOERLI ADDRESSES
+  const stakingAbi =
+    networkName && networkName === "goerli" ? stakeLocalAbi : stakeLocalAbi
+
+  // TO DO - NEED TO ADD GOERLI ADDRESSES
+  const rKageAbi =
+    networkName && networkName === "goerli" ? rKageLocalAbi : rKageLocalAbi
 
   const chainIdString = chainId && parseInt(chainId)
+
   const zKageAddress = chainIdString
     ? addressList[chainIdString]["ZeroKage"][0]
     : null
-  const dexAddress = chainIdString ? addressList[chainIdString]["DEX"][0] : null
+  const stakeAddress = chainIdString
+    ? addressList[chainIdString]["StakingRewards"][0]
+    : null
+  const rKageAddress = chainIdString
+    ? addressList[chainIdString]["r0Kage"][0]
+    : null
 
-  const [lpTokens, setLpTokens] = useState(5)
+  const [rewardTokens, setRewardTokens] = useState(5)
+  const [stakedTokens, setStakedTokens] = useState(5)
+  const [tokenBalance, setTokenBalance] = useState(0)
+
   const [allowanceApproved, setAllowanceApproved] = useState(false)
-  const [isUpdateLPTokens, setIsUpdateLPTokens] = useState(true)
+  const [isUpdateTokenBalances, setIsUpdateTokenBalances] = useState(true)
+  const [isUpdateStakingBalance, setIsUpdateStakingBalance] = useState(true)
   const [isConfirming, setIsConfirming] = useState(false)
 
   const {
@@ -72,61 +93,67 @@ export const Liquidity = () => {
     handleSubmit: handleSubmit2,
   } = useForm()
 
-  console.log("---->", errors2)
   const { runContractFunction, isLoading } = useWeb3Contract()
-  const apiParams = { abi: dexAbi, contractAddress: dexAddress }
+  const apiParams = { abi: stakingAbi, contractAddress: stakeAddress }
+
   //******************* USE EFFECT **************/
 
   /**
-   * @notice check allowance amount of token for DEX contract
-   * @dev in order to add or remove liquidity, token has to be approved first
-   * @dev as soon as page loads, get the approval amount
-   */
-  // useEffect(() => {
-  //   const allowanceParams = {
-  //     abi: zKageAbi,
-  //     contractAddress: zKageAddress,
-  //     functionName: "allowance",
-  //     params: { owner: account, spender: dexAddress },
-  //   }
-
-  //   runContractFunction({
-  //     params: allowanceParams,
-  //     onSuccess: (value) => setAllowance(ethers.formatEther(value)),
-  //     onError: errorHandler,
-  //   })
-  // }, [account])
-
-  /**
-   * @notice as soon as page is loaded, we need to recover # of LP tokens for user
-   * @notice this also should be updated when user adds liquidity or account is changed
+   * @dev as soon as page is loaded, we need to recalculate staked tokens
+   * @dev this also should be updated when user adds or removes staking
+   * @dev isUpdateStakingBalance will be updated everytime Stake or Unstake API calls are triggered
    */
   useEffect(() => {
-    if (isUpdateLPTokens) {
-      const liquidParams = {
+    if (isUpdateTokenBalances) {
+      const stakingParams = {
         ...apiParams,
-        functionName: "getLiquidity",
+        functionName: "getStakingBalance",
         params: { user: account },
       }
 
       runContractFunction({
-        params: liquidParams,
+        params: stakingParams,
         onSuccess: (values) => {
-          setLpTokens(roundDecimals(ethers.utils.formatEther(values), 6))
-          setIsUpdateLPTokens(false)
+          setStakedTokens(roundDecimals(ethers.utils.formatEther(values), 6))
+          setIsUpdateStakingBalance(false)
         },
         onError: (e) => console.log(e),
       })
     }
-  }, [isUpdateLPTokens, account])
+  }, [isUpdateStakingBalance, account, chainId])
+
+  /**
+   * @dev as soon as page is loaded, we need to recalculate token balance
+   * @dev this also should be updated when user adds or removes staking
+   * @dev isUpdateTokenBalances will be updated everytime Stake or Unstake API calls are triggered
+   */
+  useEffect(() => {
+    if (isUpdateTokenBalances) {
+      const tokenParams = {
+        abi: zKageAbi,
+        contractAddress: zKageAddress,
+        functionName: "balanceOf",
+        params: { account: account },
+      }
+
+      runContractFunction({
+        params: tokenParams,
+        onSuccess: (values) => {
+          setStakedTokens(roundDecimals(ethers.utils.formatEther(values), 6))
+          setIsUpdateTokenBalances(false)
+        },
+        onError: (e) => console.log(e),
+      })
+    }
+  }, [isUpdateTokenBalances, account, chainId])
 
   //****************** EVENT HANDLER FUNCTIONS *****************/
 
   /**
    * @notice populates LP tokens into the LP token input field in Remove Liquidity Card
    */
-  const updateLPTokens = () => {
-    setValue2("stakeTokens", lpTokens)
+  const updateStakeTokens = () => {
+    setValue2("stakeTokens", stakedTokens)
   }
   //----------------------------------------------------//
 
@@ -136,30 +163,29 @@ export const Liquidity = () => {
    * @notice send success notification to user once txn receipt is generated
    * @param {any} values returns transaction response
    */
-  const successAddLiquidityHandler = async (response) => {
+  const successAddStakeHandler = async (response) => {
     setIsConfirming(true)
     // wait for 1 block confirmation
     const txnReceipt = await response.wait(1)
     setIsConfirming(false)
 
-    // insert success notification
+    // insert success notification here
     toast({
       title: `Success`,
       status: "success",
-      description: `Liquidity added. Txn hash ${txnReceipt.transactionHash}`,
+      description: `Staking successful. Txn hash ${txnReceipt.transactionHash}`,
       isClosable: true,
       duration: 9000,
     })
     // LP tokens need to be recalculated
     // setting to true for UI to update LP token value
-    setIsUpdateLPTokens(true)
+    setIsUpdateTokenBalances(true)
+    setIsUpdateStakingBalance(true)
     setAllowanceApproved(false)
     setValue("stakeValue", null)
-    setValue("tokenValue", null)
-    // insert success notification here
   }
 
-  const successRemoveLiquidityHandler = async (response) => {
+  const successUnstakeHandler = async (response) => {
     setIsConfirming(true)
     const removeTx = await response.wait(1)
     setIsConfirming(false)
@@ -167,13 +193,19 @@ export const Liquidity = () => {
     toast({
       title: `Success`,
       status: "success",
-      description: `Liquidity withdrawn. Txn hash ${removeTx.transactionHash}`,
+      description: `Unstake successful. Txn hash ${removeTx.transactionHash}`,
       isClosable: true,
       duration: 9000,
     })
-    setIsUpdateLPTokens(true)
+    setIsUpdateTokenBalances(true)
+    setIsUpdateStakingBalance(true)
+    setValue("unstakeValue", null)
   }
 
+  /**
+   * @dev handles callback
+   * @param {any} response
+   */
   const successApproveHandler = async (response) => {
     setIsConfirming(true)
 
@@ -182,7 +214,7 @@ export const Liquidity = () => {
     toast({
       title: `Token Approved`,
       status: "success",
-      description: `Token approved. Click on 'Add Liquidity' to complete process`,
+      description: `Token approved for staking. Click on 'Stake' button to complete process`,
       isClosable: true,
       duration: 9000,
     })
@@ -218,7 +250,7 @@ export const Liquidity = () => {
     const approvalOptions = {
       abi: zKageAbi,
       contractAddress: zKageAddress,
-      params: { spender: dexAddress, amount: tokenAmount },
+      params: { spender: stakeAddress, amount: tokenAmount },
       functionName: "approve",
     }
 
@@ -228,46 +260,6 @@ export const Liquidity = () => {
       onError: errorHandler,
       onComplete: () => console.log("completed ....."),
     })
-  }
-
-  const onEthChanged = (e) => {
-    const value = e.target.value
-    if (value >= 0) {
-      const ethChangeParams = {
-        ...apiParams,
-        functionName: "getTokensToPool",
-        params: { numEth: ethers.utils.parseEther(value.toString()) },
-      }
-      runContractFunction({
-        params: ethChangeParams,
-        onSuccess: (value) => {
-          const valueInEth = ethers.utils.formatEther(value)
-
-          setValue("tokenValue", parseFloat(valueInEth))
-        },
-        onError: (e) => console.log("failed", e),
-      })
-    }
-  }
-
-  const on0KageChanged = (e) => {
-    const value = e.target.value
-    if (value >= 0) {
-      const ZeroKageChangeParams = {
-        ...apiParams,
-        functionName: "getEthToPool",
-        params: { numTokens: ethers.utils.parseEther(value.toString()) },
-      }
-
-      runContractFunction({
-        params: ZeroKageChangeParams,
-        onSuccess: (value) => {
-          const valueInEth = ethers.utils.formatEther(value)
-          setValue("stakeValue", parseFloat(valueInEth))
-        },
-        onError: (e) => console.log(e),
-      })
-    }
   }
 
   const onAddLiquidity = (values) => {
@@ -294,7 +286,7 @@ export const Liquidity = () => {
 
         runContractFunction({
           params: addLiqOptions,
-          onSuccess: successAddLiquidityHandler,
+          onSuccess: successAddStakeHandler,
           onError: errorHandler,
         })
       }
@@ -317,7 +309,7 @@ export const Liquidity = () => {
 
     runContractFunction({
       params: removeLiqOptions,
-      onSuccess: successRemoveLiquidityHandler,
+      onSuccess: successUnstakeHandler,
       onError: errorHandler,
     })
   }
@@ -336,57 +328,53 @@ export const Liquidity = () => {
         </Heading>
       )}
 
+      {numChainId !== 5 && numChainId !== 31337 && (
+        <Heading as="h2" fontSize="2xl" my="auto" textAlign="10" mt="10">
+          Invalid chain. Please switch to Goerli
+        </Heading>
+      )}
+
       {chainId && account && (
         <Container>
           <Card mt="10" width="400">
-            <Text fontSize="md" fontWeight="bold">
-              Add Liquidity
-            </Text>
+            <HStack justify="space-between">
+              <Text fontSize="md" fontWeight="bold">
+                Stake 0Kage
+              </Text>
+              <HStack spacing="4" justify="end">
+                <Badge variant="subtle" colorScheme="blue">
+                  {`Current Balance: ${rewardTokens} 0KAGE`}
+                </Badge>
+                <Button
+                  to={DEXLINK}
+                  as={RouterLink}
+                  size="sm"
+                  variant="outline">
+                  Get 0KAGE
+                </Button>
+              </HStack>
+            </HStack>
+
             <form onSubmit={handleSubmit(onAddLiquidity)}>
               <FormControl mt="10" isInvalid={Object.entries(errors).length}>
-                <VStack spacing="4">
-                  <SimpleGrid columns={2} spacingX="10px">
-                    <Tag variant="outline" colorScheme="blue">
-                      ETH
-                    </Tag>
-                    <VStack>
-                      <Input
-                        placeholder="Enter amt in Eth terms"
-                        onInput={(e) => onEthChanged(e)}
-                        {...register("stakeValue", {
-                          required: {
-                            value: true,
-                            message: "Specify amount to send",
-                          },
-                        })}
-                      />
-                      {/* <FormErrorMessage>
-                        {errors?.ethValue?.message}
-                      </FormErrorMessage> */}
-                    </VStack>
-                  </SimpleGrid>
-                  <SimpleGrid columns={2} spacingX="6px">
-                    <Tag variant="outline" colorScheme="blue">
-                      0KAGE
-                    </Tag>
-                    <VStack>
-                      <Input
-                        placeholder="Enter amt in Eth terms"
-                        onInput={(e) => on0KageChanged(e)}
-                        {...register("tokenValue", {
-                          required: {
-                            value: true,
-                            message: "Specify amount to receive",
-                          },
-                        })}
-                      />
-                      {/* <FormErrorMessage>
-                        {errors?.tokenValue?.message}
-                      </FormErrorMessage> */}
-                    </VStack>
-                  </SimpleGrid>
+                <HStack spacing="4">
+                  <FormLabel>Amount to Stake</FormLabel>
+                  <VStack>
+                    <Input
+                      placeholder="Enter amt in Eth terms"
+                      {...register("stakeValue", {
+                        required: {
+                          value: true,
+                          message: "Specify amount to stake",
+                        },
+                      })}
+                    />
+                    <FormErrorMessage>
+                      {errors?.stakeValue?.message}
+                    </FormErrorMessage>
+                  </VStack>
                   <ErrorTemplate errors={errors} />
-                </VStack>
+                </HStack>
               </FormControl>
               <VStack spacing="2" mt="10" width="100%">
                 {!allowanceApproved && (
@@ -399,7 +387,7 @@ export const Liquidity = () => {
                   colorScheme="blue"
                   variant="solid"
                   width="inherit">
-                  Add Liquidity
+                  Stake 0Kage
                 </Button>
               </VStack>
             </form>
@@ -408,10 +396,10 @@ export const Liquidity = () => {
           <Card mt="10" width="400">
             <HStack spacing="4">
               <Text fontSize="md" fontWeight="bold">
-                Remove Liquidity
+                Unstake 0Kage
               </Text>
-              <Badge variant="subtle" colorScheme="blue">
-                {`Current LP Tokens: ${lpTokens}`}
+              <Badge variant="subtle" colorScheme="green">
+                {`Current Rewards: ${rewardTokens} r0KAGE`}
               </Badge>
             </HStack>
             <Box mt="10">
@@ -423,21 +411,21 @@ export const Liquidity = () => {
                       variant="outline"
                       colorScheme="blue"
                       size="sm"
-                      onClick={updateLPTokens}>
+                      onClick={updateStakeTokens}>
                       Max
                     </Button>
                   </HStack>
                   <Input
-                    {...register2("stakeTokens", {
+                    {...register2("unstakeValue", {
                       required: { value: true, message: "Enter LP tokens" },
                       min: { value: 0, message: "Invalid value" },
                       max: {
-                        value: { lpTokens },
+                        value: { lpTokens: rewardTokens },
                         message: "LP tokens exceed max balance",
                       },
                       validate: {
                         limit: (v) =>
-                          parseFloat(v) < lpTokens ||
+                          parseFloat(v) < rewardTokens ||
                           "Entered value exceeds available LP tokens",
                       },
                     })}
@@ -449,7 +437,7 @@ export const Liquidity = () => {
                   variant="solid"
                   type="submit"
                   mt="10">
-                  Remove
+                  Unstake 0Kage
                 </Button>
               </form>
             </Box>

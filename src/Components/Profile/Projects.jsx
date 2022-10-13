@@ -12,6 +12,8 @@ import {
 import { PROJECTS } from "../../constants"
 import { Card } from "../cards/Card"
 import { Link as RouterLink } from "react-router-dom"
+import { projectStatusColor } from "../../utils/misc"
+import { ColorBadge } from "../badges/ColorBadge"
 
 export const Projects = () => {
   return (
@@ -37,7 +39,9 @@ export const Projects = () => {
                       <Text fontWeight="medium" color="emphasized">
                         {member.name}
                       </Text>
-                      <Text color="muted">{member.status}</Text>
+                      <ColorBadge color={projectStatusColor(member.status)}>
+                        <Text>{member.status}</Text>
+                      </ColorBadge>
                     </Box>
                   </HStack>
                   <Button

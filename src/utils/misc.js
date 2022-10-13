@@ -18,3 +18,21 @@ export const getNetworkName = (chainId) => {
 
   return chain ? chain.name : null
 }
+
+export const projectStatusColor = (status) => {
+  let color
+  switch (status) {
+    case "done":
+      color = "green"
+      break
+    case "soon":
+      color = "grey"
+      break
+    case "working":
+      color = "blue"
+      break
+    default:
+      color = "grey"
+  }
+  return color
+}
