@@ -66,12 +66,8 @@ export const Staking = () => {
   const stakeAddress = chainIdString
     ? addressList[chainIdString]["StakingRewards"][0]
     : null
-  const rKageAddress = chainIdString
-    ? addressList[chainIdString]["r0Kage"][0]
-    : null
 
-  const [rewardTokens, setRewardTokens] = useState(5)
-  const [stakedTokens, setStakedTokens] = useState(5)
+  const [stakedTokens, setStakedTokens] = useState(0)
   const [tokenBalance, setTokenBalance] = useState(0)
 
   const [allowanceApproved, setAllowanceApproved] = useState(false)
@@ -108,7 +104,7 @@ export const Staking = () => {
       const stakingParams = {
         ...apiParams,
         functionName: "getStakingBalance",
-        params: { user: account },
+        params: { staker: account },
       }
 
       runContractFunction({
@@ -139,7 +135,11 @@ export const Staking = () => {
       runContractFunction({
         params: tokenParams,
         onSuccess: (values) => {
-          setStakedTokens(roundDecimals(ethers.utils.formatEther(values), 6))
+          console.log(
+            "total balance",
+            roundDecimals(ethers.utils.formatEther(values), 6)
+          )
+          setTokenBalance(roundDecimals(ethers.utils.formatEther(values), 6))
           setIsUpdateTokenBalances(false)
         },
         onError: (e) => console.log(e),
@@ -153,7 +153,7 @@ export const Staking = () => {
    * @notice populates LP tokens into the LP token input field in Remove Liquidity Card
    */
   const updateStakeTokens = () => {
-    setValue2("stakeTokens", stakedTokens)
+    setValue2("unstakeValue", stakedTokens)
   }
   //----------------------------------------------------//
 
@@ -244,7 +244,7 @@ export const Staking = () => {
   //********************** API FUNCTIONS ********************/
 
   const seekApproval = (values) => {
-    const tokenAmount = ethers.utils.parseEther(values.tokenValue.toString())
+    const tokenAmount = ethers.utils.parseEther(values.stakeValue.toString())
     console.log("confirming at Seek Approval Stage", isConfirming)
     console.log("is loading", isLoading)
     const approvalOptions = {
@@ -262,30 +262,29 @@ export const Staking = () => {
     })
   }
 
-  const onAddLiquidity = (values) => {
-    const ethValue = values.ethValue
-    const tokenValue = values.tokenValue
+  /**
+   * @notice stakes a user specified amount of 0Kage
+   * @param {any} values captures stake value input by user
+   */
+  const stake = (values) => {
+    const stakeValue = values.stakeValue
     if (!allowanceApproved) {
       // seek approval first & exit
       seekApproval(values)
     } else {
       // if approved -> then go ahead and add liquidity
-      if (
-        ethValue &&
-        tokenValue &&
-        ethValue.toString() !== "0" &&
-        tokenValue.toString() !== "0"
-      ) {
-        const addLiqOptions = {
+      if (stakeValue && stakeValue.toString() !== "0") {
+        const stakeOptions = {
           ...apiParams,
-          functionName: "deposit",
-          params: {},
-          msgValue: ethers.utils.parseEther(values.ethValue.toString()),
+          functionName: "stake",
+          params: {
+            stakeAmount: ethers.utils.parseEther(stakeValue.toString()),
+          },
         }
-        console.log("add liquidity options", addLiqOptions)
+        console.log("add stake options", stakeOptions)
 
         runContractFunction({
-          params: addLiqOptions,
+          params: stakeOptions,
           onSuccess: successAddStakeHandler,
           onError: errorHandler,
         })
@@ -294,21 +293,24 @@ export const Staking = () => {
   }
 
   /**
-   * @notice function calls the removeLiquidity function in DEX contract
-   * @param {any[]} values values captured by remove liquidity form
+   * @notice function calls the remove Staking function
+   * @param {any} values values captured by remove liquidity form
    */
-  const onRemoveLiquidity = (values) => {
-    console.log("errors", errors2)
-    const removeLiqOptions = {
+  const unstake = (values) => {
+    const unstakeValue = values.unstakeValue
+    console.log("unstake value", unstakeValue)
+
+    const unstakeOptions = {
       ...apiParams,
-      functionName: "withdraw",
+      functionName: "unstake",
       params: {
-        numLPTokens: ethers.utils.parseEther(values.lpTokens.toString()),
+        unStakeAmount: ethers.utils.parseEther(unstakeValue.toString()),
       },
     }
+    console.log("unstaking params", unstakeOptions)
 
     runContractFunction({
-      params: removeLiqOptions,
+      params: unstakeOptions,
       onSuccess: successUnstakeHandler,
       onError: errorHandler,
     })
@@ -343,7 +345,7 @@ export const Staking = () => {
               </Text>
               <HStack spacing="4" justify="end">
                 <Badge variant="subtle" colorScheme="blue">
-                  {`Current Balance: ${rewardTokens} 0KAGE`}
+                  {`Balance: ${tokenBalance} 0KAGE`}
                 </Badge>
                 <Button
                   to={DEXLINK}
@@ -355,7 +357,7 @@ export const Staking = () => {
               </HStack>
             </HStack>
 
-            <form onSubmit={handleSubmit(onAddLiquidity)}>
+            <form onSubmit={handleSubmit(stake)}>
               <FormControl mt="10" isInvalid={Object.entries(errors).length}>
                 <HStack spacing="4">
                   <FormLabel>Amount to Stake</FormLabel>
@@ -399,11 +401,11 @@ export const Staking = () => {
                 Unstake 0Kage
               </Text>
               <Badge variant="subtle" colorScheme="green">
-                {`Current Rewards: ${rewardTokens} r0KAGE`}
+                {`Staked: ${stakedTokens} 0KAGE`}
               </Badge>
             </HStack>
             <Box mt="10">
-              <form onSubmit={handleSubmit2(onRemoveLiquidity)}>
+              <form onSubmit={handleSubmit2(unstake)}>
                 <FormControl isInvalid={Object.entries(errors2).length}>
                   <HStack spacing="4" mb="4">
                     <FormLabel>Choose Amount</FormLabel>
@@ -420,17 +422,19 @@ export const Staking = () => {
                       required: { value: true, message: "Enter LP tokens" },
                       min: { value: 0, message: "Invalid value" },
                       max: {
-                        value: { lpTokens: rewardTokens },
-                        message: "LP tokens exceed max balance",
+                        value: stakedTokens,
+                        message: "Staked tokens exceed current balance",
                       },
                       validate: {
                         limit: (v) =>
-                          parseFloat(v) < rewardTokens ||
-                          "Entered value exceeds available LP tokens",
+                          parseFloat(v) <= parseFloat(stakedTokens) ||
+                          "Entered value exceeds current staking balance",
                       },
                     })}
                   />
-                  <ErrorTemplate errors={errors2} />
+                  <FormErrorMessage>
+                    {errors2?.unstakeValue?.message}
+                  </FormErrorMessage>
                 </FormControl>
                 <Button
                   colorScheme="blue"
