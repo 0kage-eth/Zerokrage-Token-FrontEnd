@@ -38,6 +38,7 @@ export const Liquidity = () => {
 
   console.log("chain Id", chainId)
   const networkName = getNetworkName(chainId)
+  const numChainId = parseInt(chainId)
 
   const zKageAbi =
     networkName && networkName === "goerli"
@@ -333,6 +334,12 @@ export const Liquidity = () => {
       {(!account || !chainId) && (
         <Heading as="h2" fontSize="2xl" my="auto" textAlign="10" mt="10">
           Please connect your wallet
+        </Heading>
+      )}
+
+      {numChainId !== 5 && numChainId !== 31337 && (
+        <Heading as="h2" fontSize="2xl" my="auto" textAlign="10" mt="10">
+          Invalid chain. Please switch to Goerli
         </Heading>
       )}
 

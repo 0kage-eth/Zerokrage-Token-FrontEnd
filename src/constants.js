@@ -10,6 +10,12 @@ export const DEX_PAGE_LINKS = [
 export const STAKING_PAGES = ["Stake", "Dashboard"]
 export const STAKING_PAGE_LINKS = ["stake", "dashboard"]
 
+export const LOTTERY_PAGES = ["Lottery", "Account", "Dashboard"]
+export const LOTTERY_PAGE_LINKS = ["play", "account", "dashboard"]
+
+export const VESTING_PAGES = ["Vesting", "Dashboard"]
+export const VESTING_PAGE_LINKS = ["enter", "dashboard"]
+
 export const CHAINS = [
   { chainId: 1, name: "mainnet" },
   { chainId: 5, name: "goerli" },
@@ -45,26 +51,27 @@ export const PROJECTS = [
     id: 4,
     name: "0KAGE Lottery",
     desc: "Decentralized smart lottery that chooses a winner every day. Pay 0KAGE to participate in lottery",
-    link: "https://etherscan.io/",
+    link: "/lottery/play",
     img: "https://cdn.pixabay.com/photo/2021/05/24/09/15/ethereum-logo-6278329_1280.png",
     status: "working",
   },
   {
     id: 5,
+    name: "0KAGE Token Vesting",
+    desc: "Become a core-member of 0KAGE & get tokens vested every day for your contibution",
+    link: "/vesting/enter",
+    img: "https://cdn.pixabay.com/photo/2021/05/24/09/15/ethereum-logo-6278329_1280.png",
+    status: "working",
+  },
+  {
+    id: 6,
     name: "0KAGE NFT Marketplace",
     desc: "Mint your NFTs by post them for sale on marketplace. If you like any, buy them with you 0KAGE tokens",
     link: "https://etherscan.io/",
     img: "https://cdn.pixabay.com/photo/2021/05/24/09/15/ethereum-logo-6278329_1280.png",
     status: "working",
   },
-  {
-    id: 6,
-    name: "0KAGE Token Vesting",
-    desc: "Become a core-member of 0KAGE & get tokens vested every day for your contibution",
-    link: "https://etherscan.io/",
-    img: "https://cdn.pixabay.com/photo/2021/05/24/09/15/ethereum-logo-6278329_1280.png",
-    status: "working",
-  },
+
   {
     id: 7,
     name: "0KAGE DAO",

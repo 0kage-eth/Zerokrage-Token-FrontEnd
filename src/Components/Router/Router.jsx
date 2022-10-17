@@ -10,6 +10,13 @@ import { DexDashboard } from "../../pages/DexDashboard"
 import { StakingDashboard } from "../../pages/StakingDashboard"
 import { Staking } from "../../pages/Staking"
 import { StakingHome } from "../../pages/StakingHome"
+import { LotteryHome } from "../../pages/lottery/LotteryHome"
+import { LotteryEnter } from "../../pages/lottery/LotteryEnter"
+import { LotteryAccount } from "../../pages/lottery/LotteryAccount"
+import { LotteryDashboard } from "../../pages/lottery/LotteryDashboard"
+import { VestingHome } from "../../pages/vesting/VestingHome"
+import { VestingEnter } from "../../pages/vesting/VestingEnter"
+import { VestingDashboard } from "../../pages/vesting/VestingDashboard"
 
 export const routerConfig = createBrowserRouter([
   {
@@ -56,6 +63,40 @@ export const routerConfig = createBrowserRouter([
         element: <Staking />,
       },
       { path: "dashboard", element: <StakingDashboard /> },
+    ],
+  },
+
+  {
+    path: "lottery",
+    element: <LotteryHome />,
+    children: [
+      {
+        path: "play",
+        element: <LotteryEnter />,
+      },
+      {
+        path: "account",
+        element: <LotteryAccount />,
+      },
+      {
+        path: "dashboard",
+        element: <LotteryDashboard />,
+      },
+    ],
+  },
+
+  {
+    path: "vesting",
+    element: <VestingHome />,
+    children: [
+      {
+        path: "enter",
+        element: <VestingEnter />,
+      },
+      {
+        path: "dashboard",
+        element: <VestingDashboard />,
+      },
     ],
   },
 ])
