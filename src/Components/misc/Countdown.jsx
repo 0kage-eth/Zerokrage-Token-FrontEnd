@@ -54,8 +54,13 @@ const ShowCounter = ({ days, hours, minutes, seconds }) => {
 }
 
 export const CountdownTimer = ({ targetDate, ...props }) => {
-  console.log("target inside timer", targetDate)
   const [days, hours, minutes, seconds] = useCountdown(targetDate)
+
+  if (!targetDate) {
+    return <div>...</div>
+  }
+
+  console.log("target inside timer", targetDate)
 
   if (days + hours + minutes + seconds <= 0) {
     return <ExpiredNotice />

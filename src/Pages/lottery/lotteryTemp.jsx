@@ -35,7 +35,7 @@ import { ethers } from "ethers"
 import { roundDecimals } from "../../utils/web3-formats"
 import { dateFormatddMMMyyHHMM } from "../../utils/misc"
 
-export const LotteryEnter = () => {
+export const LotteryEnterTemp = () => {
   const { account, chainId, isWeb3Enabled, enableWeb3 } = useMoralis()
   console.log("chainId", chainId)
 
@@ -54,7 +54,11 @@ export const LotteryEnter = () => {
   const [numPlayerTickets, setNumPlayerTickets] = useState(0)
   const [potSize, setPotSize] = useState(0)
   const [isConfirming, setIsConfirming] = useState(false)
-  const [updateStats, setUpdateStats] = useState(true)
+
+  const [updateNumTickets, setUpdateNumTickets] = useState(true)
+  const [updatePlayerTickets, setUpdatePlayerTickets] = useState(true)
+  const [updateParticipants, setUpdateParticipants] = useState(true)
+  const [updatePotsize, setUpdatePotsize] = useState(true)
 
   const toast = useToast()
 
@@ -79,37 +83,43 @@ export const LotteryEnter = () => {
 
   useEffect(() => {
     if (!chainId) return
-    Promise.all([
-      getNumTickets(),
-      getPotSize(),
-      getPlayerTickets(),
-      getParticipants(),
-    ])
-      .then(([_numTickets, _potSize, _playerTickets, _players]) => {
-        setNumTicketsSold(parseInt(_numTickets))
-        setPotSize(roundDecimals(ethers.utils.formatEther(_potSize), 6))
-        setNumPlayerTickets(parseInt(_playerTickets))
-        setNumParticipants(parseInt(_players))
-        setUpdateStats(false)
-      })
-      .catch(errorHandler)
-  }, [account, chainId, updateStats])
-
-  useEffect(() => {
-    if (!chainId) return
 
     // get lottery fee here`
     const lotteryAddress = getLotteryAddress()
 
     const apiParams = { abi: lotteryAbi, contractAddress: lotteryAddress }
 
+    console.log("api params", apiParams)
     getLotteryFees(apiParams)
 
     getLotteryStartDate(apiParams)
 
     getLotteryEndDate(apiParams)
-    setAllowanceApproved(false)
   }, [account, chainId])
+
+  // updates all stats once any new action happens on platform
+  useEffect(() => {
+    if (!chainId) return
+    getNumTickets()
+  }, [account, chainId, updateNumTickets])
+
+  useEffect(() => {
+    if (!chainId) return
+
+    getPlayerTickets()
+  }, [account, chainId, updatePlayerTickets])
+
+  useEffect(() => {
+    if (!chainId) return
+
+    getPotSize()
+  }, [account, chainId, updatePotsize])
+
+  useEffect(() => {
+    if (!chainId) return
+
+    getParticipants()
+  }, [account, chainId, updateParticipants])
 
   //******************************************************* */
 
@@ -142,8 +152,6 @@ export const LotteryEnter = () => {
     // wait for 1 block confirmation
     const txnReceipt = await response.wait(1)
     setIsConfirming(false)
-    setAllowanceApproved(false)
-    setValue("numTickets", null)
 
     // insert success notification here
     toast({
@@ -153,7 +161,10 @@ export const LotteryEnter = () => {
       isClosable: true,
       duration: 9000,
     })
-    setUpdateStats(true)
+    setUpdateParticipants(true)
+    setUpdateNumTickets(true)
+    setUpdatePlayerTickets(true)
+    setUpdatePotsize(true)
   }
 
   /**
@@ -251,8 +262,16 @@ export const LotteryEnter = () => {
       params: {},
     }
 
-    return runContractFunction({
+    runContractFunction({
       params: participantParams,
+      onSuccess: (value) => {
+        console.log("num player", value)
+        setNumParticipants(parseInt(value))
+        setUpdateParticipants(false)
+      },
+      onError: (e) => {
+        errorHandler(e)
+      },
     })
   }
 
@@ -265,8 +284,16 @@ export const LotteryEnter = () => {
       params: {},
     }
 
-    return runContractFunction({
+    runContractFunction({
       params: numTicketParams,
+      onSuccess: (value) => {
+        console.log("Total tickets", value)
+        setNumTicketsSold(parseInt(value))
+        setUpdateNumTickets(false)
+      },
+      onError: (e) => {
+        errorHandler(e)
+      },
     })
   }
 
@@ -280,8 +307,16 @@ export const LotteryEnter = () => {
       params: {},
     }
 
-    return runContractFunction({
+    runContractFunction({
       params: potParams,
+      onSuccess: (value) => {
+        console.log("pot size", value)
+        setPotSize(roundDecimals(ethers.utils.formatEther(value), 6))
+        setUpdatePotsize(false)
+      },
+      onError: (e) => {
+        errorHandler(e)
+      },
     })
   }
 
@@ -295,8 +330,16 @@ export const LotteryEnter = () => {
       params: {},
     }
 
-    return runContractFunction({
+    runContractFunction({
       params: ticketParams,
+      onSuccess: (value) => {
+        console.log("Your tickets", value)
+        setNumPlayerTickets(parseInt(value))
+        setUpdatePlayerTickets(false)
+      },
+      onError: (e) => {
+        errorHandler(e)
+      },
     })
   }
 
@@ -348,10 +391,6 @@ export const LotteryEnter = () => {
   const getTokenAddress = () => {
     if (!chainId) return null
     const chainIdString = parseInt(chainId)
-    console.log(
-      "zero kage address",
-      addressList[chainIdString]["ZeroKageMock"][0]
-    )
     return addressList[chainIdString]["ZeroKageMock"][0]
   }
 
@@ -469,7 +508,7 @@ export const LotteryEnter = () => {
                   Closes in
                 </Text>
                 <CountdownTimer
-                  targetDate={endDate ? endDate.getTime() : null}
+                  targetDate={endDate ? endDate.getTime() : 0}
                   mt="6"
                 />
               </VStack>

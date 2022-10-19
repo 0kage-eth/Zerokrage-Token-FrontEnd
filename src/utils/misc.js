@@ -5,6 +5,21 @@ export const TransactionStatus = {
   Note: 2,
 }
 
+const monthString = [
+  "Jan",
+  "Feb",
+  "Mar",
+  "Apr",
+  "May",
+  "Jun",
+  "Jul",
+  "Aug",
+  "Sep",
+  "Oct",
+  "Nov",
+  "Dec",
+]
+
 /**
  * @notice returns network name for a given chain Id
  * @param {string} chainId chain id of the chain
@@ -35,4 +50,25 @@ export const projectStatusColor = (status) => {
       color = "grey"
   }
   return color
+}
+
+/**
+ *
+ * @param {Date} date
+ */
+export const dateFormatddMMMyyHHMM = (date) => {
+  if (!date) return ""
+  const day = date.getUTCDate()
+  const month = monthString[date.getUTCMonth()]
+  const year = date.getUTCFullYear().toString().substring(2)
+  const hour = date.getUTCHours()
+  const mins = date.getUTCMinutes()
+  const secs = date.getUTCSeconds()
+
+  const dayString = day < 10 ? `0${day}` : day.toString()
+  const hourString = hour < 10 ? `0${hour}` : hour.toString()
+  const minString = mins < 10 ? `0${mins}` : mins.toString()
+  const secsString = secs < 10 ? `0${secs}` : secs.toString()
+
+  return `${dayString}-${month}-${year} ${hourString}:${minString}:${secsString}`
 }
