@@ -72,3 +72,7 @@ export const dateFormatddMMMyyHHMM = (date) => {
 
   return `${dayString}-${month}-${year} ${hourString}:${minString}:${secsString}`
 }
+
+export const convertMonthsToSeconds = (month) => {
+  return parseInt(month) * 30 * 24 * 60 * 60
+}

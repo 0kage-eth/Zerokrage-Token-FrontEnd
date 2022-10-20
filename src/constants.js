@@ -52,8 +52,8 @@ export const PROJECTS = [
     name: "0KAGE Lottery",
     desc: "Decentralized smart lottery that chooses a winner every day. Pay 0KAGE to participate in lottery",
     link: "/lottery/play",
-    img: "https://cdn.pixabay.com/photo/2021/05/24/09/15/ethereum-logo-6278329_1280.png",
-    status: "working",
+    img: "https://res.cloudinary.com/crunchbase-production/image/upload/c_lpad,f_auto,q_auto:eco,dpr_1/v1476103033/xfu7exy5y6rkscsm1kns.png",
+    status: "done",
   },
   {
     id: 5,
@@ -108,3 +108,36 @@ export const PROJECTS = [
 
 export const SUBGRAPH_URI =
   "https://api.studio.thegraph.com/query/34697/zerokage-token/v0.0.4"
+
+export const JOBS = [
+  {
+    id: 1,
+    role: "Smartcontract Engineer",
+    place: "Remote",
+    tokens: "100",
+    cliff: "12", // in months
+    duration: "36", // in months
+    revocable: true,
+    cycle: "1", // in months
+  },
+  {
+    id: 2,
+    role: "Marketing Manager",
+    place: "NYC",
+    tokens: "60",
+    cliff: "6", // in months
+    duration: "24", // in months
+    revocable: true,
+    cycle: "1", // in months
+  },
+  {
+    id: 3,
+    role: "Engagement Manager",
+    place: "Remote",
+    tokens: "40",
+    cliff: "6", // in months
+    duration: "24", // in months
+    revocable: true,
+    cycle: "1", // in months
+  },
+]

@@ -1,38 +1,179 @@
-import { Box, Heading, Button, Icon } from "@chakra-ui/react"
+import { Box, Heading, Button, Icon, useToast } from "@chakra-ui/react"
 import { useMoralis, useWeb3Contract } from "react-moralis"
-import { ethers } from "ethers"
-import { useState, useEffect } from "react"
 import { getNetworkName } from "../../utils/misc"
 import { JobCard } from "../../components/cards/JobCard"
 import { GoPencil } from "react-icons/go"
-const JobProfiles = [
-  {
-    role: "Smartcontract Engineer",
-    place: "Remote",
-    tokens: "100,000",
-    cliff: "12 months",
-    duration: "36 months",
-  },
-  {
-    role: "Marketing Manager",
-    place: "NYC",
-    tokens: "60,000",
-    cliff: "6 months",
-    duration: "24 months",
-  },
-  {
-    role: "Engagement Manager",
-    place: "Remote",
-    tokens: "40,000",
-    cliff: "6 months",
-    duration: "24 months",
-  },
-]
+import { JOBS } from "../../constants"
+import { useState, useEffect } from "react"
+import { VestingAgreementModal } from "./VestingAgreementModal"
+import vestingContractAbi from "../../contracts/localhost_TokenVesting.json"
+import addressList from "../../contracts/addresses.json"
 
 export const VestingEnter = () => {
   const { account, chainId } = useMoralis()
+  const networkName = getNetworkName(chainId)
   const numChainId = parseInt(chainId)
+  const toast = useToast()
+  const [isConfirming, setIsConfirming] = useState(false)
+  const [vestingSchedules, setVestingSchedules] = useState([])
 
+  // Setting abis and addresses
+
+  const vestingAbi =
+    networkName && networkName === "goerli"
+      ? vestingContractAbi
+      : vestingContractAbi // TO DO - create and insert goerli address
+
+  const [isModalOpen, setIsModalOpen] = useState(false)
+  const [selectedJob, setSelectedJob] = useState({})
+
+  const creatingVestingSchedule = (job) => {
+    console.log("asdasdasdas")
+    console.log("job selected", job)
+    setSelectedJob(job)
+    setIsModalOpen(true)
+  }
+
+  const { runContractFunction, isLoading, isFetching } = useWeb3Contract()
+
+  useEffect(() => {
+    getVestingSchedulesForBeneficiary()
+  }, [account, chainId])
+
+  // ************************* API CALLS ***************************
+
+  // const getVestingSchedulesForBeneficiary = () => {
+  //   const vestingAddress = getVestingAddress()
+  //   if (vestingAddress) {
+  //     const apiParams = { abi: vestingAbi, contractAddress: vestingAddress }
+
+  //     const getParams = {
+  //       ...apiParams,
+  //       functionName: "getVestingScheduleForBeneficiary",
+  //       params: {
+  //         beneficiary: account,
+  //       },
+  //     }
+
+  //     runContractFunction({
+  //       params: getParams,
+  //       onSuccess: (schedules) => schedulesHandler(schedules),
+  //       onError: (e) => errorHandler(e),
+  //     })
+  //   }
+  // }
+
+  const getVestingSchedulesForBeneficiary = () => {
+    const vestingAddress = getVestingAddress()
+    if (vestingAddress) {
+      const apiParams = { abi: vestingAbi, contractAddress: vestingAddress }
+
+      const getParams = {
+        ...apiParams,
+        functionName: "getCountPerBeneficiary",
+        params: {
+          beneficiary: account,
+        },
+      }
+
+      runContractFunction({
+        params: getParams,
+        onSuccess: (scheduleCount) => successCountHandler(scheduleCount),
+        onError: (e) => errorHandler(e),
+      })
+    }
+  }
+
+  const getVestingScheduleForBeneficiaryAndId = (beneficiary, index) => {
+    const vestingAddress = getVestingAddress()
+    if (vestingAddress) {
+      const apiParams = { abi: vestingAbi, contractAddress: vestingAddress }
+
+      const getParams = {
+        ...apiParams,
+        functionName: "getVestingScheduleIdForAddressAndIndex",
+        params: {
+          beneficiary: beneficiary,
+          index: index,
+        },
+      }
+      runContractFunction({
+        params: getParams,
+        onSuccess: (schedule) => schedulesArrayHandler(schedule),
+        onError: (e) => errorHandler(e),
+      })
+    }
+  }
+
+  // ---------------------------------------------------------------
+
+  // ************************** CALLBACKS FUNCTIONS ********************
+
+  const successCountHandler = (scheduleCount) => {
+    console.log("count of schedules", scheduleCount)
+
+    if (scheduleCount > 0) {
+      ;[...Array(scheduleCount).keys()].map((index) => {
+        console.log("index", index)
+        return getVestingScheduleForBeneficiaryAndId(account, index)
+      })
+    }
+  }
+
+  const schedulesHandler = (schedules) => {
+    console.log("all schedules", schedules)
+    setVestingSchedules(schedules)
+  }
+
+  const schedulesArrayHandler = (schedule) => {
+    console.log("schedule", schedule)
+    setVestingSchedules([...vestingSchedules, schedule])
+  }
+
+  const errorHandler = (e) => {
+    // insert error notification here
+    const errorMsg = e.message
+
+    toast({
+      title: `Error`,
+      status: "error",
+      description: errorMsg,
+      isClosable: true,
+      duration: 9000,
+    })
+    setIsConfirming(false)
+    // insert error notification here
+  }
+
+  // ---------------------------------------------------------------
+
+  // ************************** HELPER FUNCTIONS ********************
+
+  const getVestingAddress = () => {
+    if (!chainId) return null
+    const chainIdString = parseInt(chainId)
+    return addressList[chainIdString]["TokenVesting"][0]
+  }
+
+  const vestingExists = (job) => {
+    // if (vestingSchedules.length > 0) {
+    //   console.log("entering find function")
+    //   const schedule = vestingSchedules.find((scheduleArray) => {
+    //     console.log("schedule array", scheduleArray)
+    //     const identifierObject = scheduleArray.find((element) => {
+    //       console.log("element", element)
+    //     })
+    //     if (identifierObject) {
+    //       return identifierObject["identifer"] == job.id
+    //     }
+    //   })
+    //   console.log("schedule", schedule)
+    //   if (schedule) return true
+    // }
+    return false
+  }
+
+  //-----------------------------------------------------------------//
   return (
     <Box as="section" height="100vh" width="100%" overflowY="auto" mx="auto">
       {(!account || !chainId) && (
@@ -49,27 +190,32 @@ export const VestingEnter = () => {
 
       {chainId && account && (
         <Box width="70%" mx="auto">
-          {JobProfiles.map((profile, index) => {
+          {JOBS.map((job) => {
             return (
               <JobCard
-                id={index}
-                title={profile.role}
+                id={job.id}
+                title={job.role}
                 action={
                   <Button
                     size="sm"
                     variant="outline"
-                    leftIcon={
-                      <Icon as={GoPencil} color="gray.400" marginStart="-1" />
-                    }>
-                    Join
+                    onClick={() => creatingVestingSchedule(job)}
+                    isDisabled={() => vestingExists(job)}>
+                    {vestingExists(job) ? " Ongoing Vesting" : "Join Vesting"}
                   </Button>
                 }
-                place={profile.place}
-                tokens={profile.tokens}
-                cliff={profile.cliff}
-                duration={profile.duration}></JobCard>
+                place={job.place}
+                tokens={job.tokens}
+                cliff={job.cliff}
+                duration={job.duration}></JobCard>
             )
           })}
+
+          <VestingAgreementModal
+            isOpen={isModalOpen}
+            isOpenHandler={setIsModalOpen}
+            job={selectedJob}
+          />
         </Box>
       )}
     </Box>

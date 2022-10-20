@@ -36,8 +36,7 @@ import { roundDecimals } from "../../utils/web3-formats"
 import { dateFormatddMMMyyHHMM } from "../../utils/misc"
 
 export const LotteryEnter = () => {
-  const { account, chainId, isWeb3Enabled, enableWeb3 } = useMoralis()
-  console.log("chainId", chainId)
+  const { account, chainId } = useMoralis()
 
   const networkName = getNetworkName(chainId)
   const numChainId = parseInt(chainId)
