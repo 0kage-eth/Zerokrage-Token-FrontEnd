@@ -21,7 +21,12 @@ import { JOBS } from "../../constants"
 import { convertMonthsToSeconds } from "../../utils/misc"
 import { ProductFeaturesTable } from "../../components/table/VestingAgreementTable"
 
-export const VestingAgreementModal = ({ isOpen, isOpenHandler, job }) => {
+export const VestingAgreementModal = ({
+  isOpen,
+  isOpenHandler,
+  job,
+  updateScheduleHandler,
+}) => {
   const { onClose } = useDisclosure()
   const { account, chainId } = useMoralis()
   const networkName = getNetworkName(chainId)
@@ -39,7 +44,6 @@ export const VestingAgreementModal = ({ isOpen, isOpenHandler, job }) => {
 
   //***************** API FUNCTIONS ************** */
   const onSignVesting = async () => {
-    console.log("what happened")
     const vestingAddress = getVestingAddress()
     const apiParams = { abi: vestingAbi, contractAddress: vestingAddress }
     const startTime = parseInt(new Date().getTime() / 1000)
@@ -76,6 +80,7 @@ export const VestingAgreementModal = ({ isOpen, isOpenHandler, job }) => {
     setIsConfirming(false)
 
     isOpenHandler(false)
+    updateScheduleHandler(false)
     toast({
       title: `Congratulations!`,
       status: "success",

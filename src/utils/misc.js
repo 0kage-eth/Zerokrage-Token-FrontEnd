@@ -1,4 +1,5 @@
 import { CHAINS } from "../constants"
+import { BigNumber, ethers } from "ethers"
 export const TransactionStatus = {
   Success: 0,
   Error: 1,
@@ -73,6 +74,28 @@ export const dateFormatddMMMyyHHMM = (date) => {
   return `${dayString}-${month}-${year} ${hourString}:${minString}:${secsString}`
 }
 
+export const dateFormatddMMMyy = (date) => {
+  if (!date) return ""
+  const day = date.getUTCDate()
+  const month = monthString[date.getUTCMonth()]
+  const year = date.getUTCFullYear().toString().substring(2)
+
+  const dayString = day < 10 ? `0${day}` : day.toString()
+
+  return `${dayString}-${month}-${year}`
+}
+
 export const convertMonthsToSeconds = (month) => {
   return parseInt(month) * 30 * 24 * 60 * 60
+}
+
+export const getMonthsFromCliff = (startTime, cliff) => {
+  const numMonths = BigNumber.from(cliff)
+    .sub(startTime)
+    .div(24)
+    .div(30)
+    .div(60)
+    .div(60)
+  const months = ethers.utils.formatUnits(numMonths, "wei")
+  return `${months} months`
 }

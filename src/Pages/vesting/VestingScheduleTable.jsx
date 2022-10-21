@@ -1,5 +1,5 @@
 import { useMoralis } from "react-moralis"
-import { SimpleTable } from "../table/SimpleTable"
+import { SimpleTable } from "../../components/table/SimpleTable"
 import { useState, useEffect } from "react"
 import {
   Heading,

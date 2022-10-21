@@ -9,13 +9,14 @@ import { VestingAgreementModal } from "./VestingAgreementModal"
 import vestingContractAbi from "../../contracts/localhost_TokenVesting.json"
 import addressList from "../../contracts/addresses.json"
 
+let vestingSchedules = [] // list of all vesting schedules for current beneficiary
+
 export const VestingEnter = () => {
   const { account, chainId } = useMoralis()
   const networkName = getNetworkName(chainId)
   const numChainId = parseInt(chainId)
   const toast = useToast()
   const [isConfirming, setIsConfirming] = useState(false)
-  const [vestingSchedules, setVestingSchedules] = useState([])
 
   // Setting abis and addresses
 
@@ -26,10 +27,9 @@ export const VestingEnter = () => {
 
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [selectedJob, setSelectedJob] = useState({})
+  const [schedulesUpdated, setSchedulesUpdated] = useState(false)
 
   const creatingVestingSchedule = (job) => {
-    console.log("asdasdasdas")
-    console.log("job selected", job)
     setSelectedJob(job)
     setIsModalOpen(true)
   }
@@ -37,8 +37,11 @@ export const VestingEnter = () => {
   const { runContractFunction, isLoading, isFetching } = useWeb3Contract()
 
   useEffect(() => {
-    getVestingSchedulesForBeneficiary()
-  }, [account, chainId])
+    if (!schedulesUpdated) {
+      vestingSchedules = [] // re-initialize back to empty array - figure if there is better way
+      getVestingSchedulesForBeneficiary()
+    }
+  }, [account, chainId, schedulesUpdated])
 
   // ************************* API CALLS ***************************
 
@@ -91,7 +94,7 @@ export const VestingEnter = () => {
 
       const getParams = {
         ...apiParams,
-        functionName: "getVestingScheduleIdForAddressAndIndex",
+        functionName: "getVestingScheduleForAddressAndIndex",
         params: {
           beneficiary: beneficiary,
           index: index,
@@ -114,20 +117,19 @@ export const VestingEnter = () => {
 
     if (scheduleCount > 0) {
       ;[...Array(scheduleCount).keys()].map((index) => {
-        console.log("index", index)
         return getVestingScheduleForBeneficiaryAndId(account, index)
       })
     }
   }
 
-  const schedulesHandler = (schedules) => {
-    console.log("all schedules", schedules)
-    setVestingSchedules(schedules)
-  }
+  // const schedulesHandler = (schedules) => {
+  //   console.log("all schedules", schedules)
+  // }
 
   const schedulesArrayHandler = (schedule) => {
-    console.log("schedule", schedule)
-    setVestingSchedules([...vestingSchedules, schedule])
+    const scheduleObj = getScheduledObject(schedule)
+    vestingSchedules = [...vestingSchedules, scheduleObj]
+    setSchedulesUpdated(true)
   }
 
   const errorHandler = (e) => {
@@ -156,21 +158,32 @@ export const VestingEnter = () => {
   }
 
   const vestingExists = (job) => {
-    // if (vestingSchedules.length > 0) {
-    //   console.log("entering find function")
-    //   const schedule = vestingSchedules.find((scheduleArray) => {
-    //     console.log("schedule array", scheduleArray)
-    //     const identifierObject = scheduleArray.find((element) => {
-    //       console.log("element", element)
-    //     })
-    //     if (identifierObject) {
-    //       return identifierObject["identifer"] == job.id
-    //     }
-    //   })
-    //   console.log("schedule", schedule)
-    //   if (schedule) return true
-    // }
+    if (vestingSchedules.length > 0) {
+      const schedule = vestingSchedules.find((scheduleObj) => {
+        return scheduleObj.identifier == job.id
+      })
+      if (schedule) return true
+    }
     return false
+  }
+
+  const getScheduledObject = (scheduleArray) => {
+    const mapping = {
+      0: "initialized",
+      1: "beneficiary",
+      2: "cliff",
+      3: "vestingStart",
+      4: "vestingEnd",
+      5: "vestingCycle",
+      6: "revocable",
+      7: "allocated",
+      8: "released",
+      9: "revoked",
+      10: "identifier",
+    }
+    return scheduleArray.reduce((prev, current, indx) => {
+      return { ...prev, ...{ [mapping[indx]]: current } }
+    }, {})
   }
 
   //-----------------------------------------------------------------//
@@ -191,6 +204,7 @@ export const VestingEnter = () => {
       {chainId && account && (
         <Box width="70%" mx="auto">
           {JOBS.map((job) => {
+            console.log("vesting exists for job", vestingExists(job))
             return (
               <JobCard
                 id={job.id}
@@ -200,7 +214,7 @@ export const VestingEnter = () => {
                     size="sm"
                     variant="outline"
                     onClick={() => creatingVestingSchedule(job)}
-                    isDisabled={() => vestingExists(job)}>
+                    isDisabled={vestingExists(job)}>
                     {vestingExists(job) ? " Ongoing Vesting" : "Join Vesting"}
                   </Button>
                 }
@@ -214,6 +228,7 @@ export const VestingEnter = () => {
           <VestingAgreementModal
             isOpen={isModalOpen}
             isOpenHandler={setIsModalOpen}
+            updateScheduleHandler={setSchedulesUpdated}
             job={selectedJob}
           />
         </Box>

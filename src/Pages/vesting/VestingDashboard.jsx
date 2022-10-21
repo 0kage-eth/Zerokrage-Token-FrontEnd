@@ -2,7 +2,9 @@ import { Card } from "../../components/cards/Card"
 import { useMoralis, useWeb3Contract } from "react-moralis"
 import { getNetworkName } from "../../utils/misc"
 import { useState, useEffect } from "react"
-import { VestingScheduleTable } from "../../components/graph/VestingScheduleTable"
+import { VestingScheduleTable } from "./VestingScheduleTable"
+import { ethers } from "ethers"
+import vestingContractAbi from "../../contracts/localhost_TokenVesting.json"
 import {
   Box,
   Center,
@@ -13,16 +15,160 @@ import {
   Button,
   Container,
   SimpleGrid,
+  useToast,
 } from "@chakra-ui/react"
+import addressList from "../../contracts/addresses.json"
+import { roundDecimals } from "../../utils/web3-formats"
+import { VestingSummaryCard } from "./VestingSummaryCard"
 
 export const VestingDashboard = () => {
   const { account, chainId } = useMoralis()
   const networkName = getNetworkName(chainId)
   const numChainId = parseInt(chainId)
+  const toast = useToast()
 
-  const [vested, setVested] = useState(0)
+  const [allocated, setAllocated] = useState(0)
   const [released, setReleased] = useState(0)
-  const [unvested, setUnvested] = useState(0)
+  const [pending, setPending] = useState(0)
+  const [schedules, setSchedules] = useState([])
+  const [isConfirming, setIsConfirming] = useState(false)
+  const [updateschedules, setUpdateSchedules] = useState(true)
+  const { runContractFunction, isLoading, isFetching } = useWeb3Contract()
+  const vestingAbi =
+    networkName && networkName === "goerli"
+      ? vestingContractAbi
+      : vestingContractAbi // TO DO - create and insert goerli address
+
+  //***************** USE EFFECT FUNCTIONS ************** */
+
+  useEffect(() => {
+    if (!chainId) return
+    if (updateschedules) {
+      Promise.all([allMetrics(), getVestingSchedulesForBeneficiary()])
+        .then(([metrics, schedules]) => {
+          console.log("schedules in useEffect dashboard", schedules)
+          successHandler(metrics)
+          schedulesHandler(schedules)
+          setUpdateSchedules(false)
+        })
+        .catch((e) => errorHandler(e))
+    }
+
+    // allMetrics()
+    // getVestingSchedulesForBeneficiary()
+  }, [account, chainId, updateschedules])
+
+  //--------------------------------------------------/
+
+  //***************** API FUNCTIONS ************** */
+
+  const allMetrics = () => {
+    const vestingAddress = getVestingAddress()
+    const apiParams = { abi: vestingAbi, contractAddress: vestingAddress }
+    if (vestingAddress) {
+      const allMetricsParams = {
+        ...apiParams,
+        functionName: "getAllVestingMetcis",
+        params: {
+          beneficiary: account,
+        },
+      }
+
+      return runContractFunction({
+        params: allMetricsParams,
+        // onSuccess: (metrics) => successHandler(metrics),
+        // onError: (e) => errorHandler(e),
+      })
+    }
+    return
+  }
+
+  const getVestingSchedulesForBeneficiary = () => {
+    const vestingAddress = getVestingAddress()
+    if (vestingAddress) {
+      const apiParams = { abi: vestingAbi, contractAddress: vestingAddress }
+
+      const getParams = {
+        ...apiParams,
+        functionName: "getVestingScheduleForBeneficiary",
+        params: {
+          beneficiary: account,
+        },
+      }
+
+      return runContractFunction({
+        params: getParams,
+        // onSuccess: (schedules) => schedulesHandler(schedules),
+        // onError: (e) => errorHandler(e),
+      })
+    }
+    return
+  }
+  //--------------------------------------------------/
+
+  // ************************** CALLBACKS FUNCTIONS ********************
+
+  const schedulesHandler = (schedulesArray) => {
+    const localSchedules = []
+    for (let i = 0; i < schedulesArray.length; i++) {
+      const scheduleObj = getScheduledObject(schedulesArray[i])
+      localSchedules.push(scheduleObj)
+    }
+    setSchedules(localSchedules)
+  }
+
+  const successHandler = (metrics) => {
+    const { totalAllocated, totalReleased, totalPending } = metrics
+
+    setAllocated(roundDecimals(ethers.utils.formatEther(totalAllocated), 6))
+    setPending(roundDecimals(ethers.utils.formatEther(totalPending), 6))
+    setReleased(roundDecimals(ethers.utils.formatEther(totalReleased), 6))
+  }
+
+  const errorHandler = (e) => {
+    // insert error notification here
+    const errorMsg = e.message
+
+    toast({
+      title: `Error`,
+      status: "error",
+      description: errorMsg,
+      isClosable: true,
+      duration: 9000,
+    })
+    setIsConfirming(false)
+    // insert error notification here
+  }
+
+  // ---------------------------------------------------------------
+  //***************** HELPER FUNCTIONS ************** */
+
+  const getVestingAddress = () => {
+    if (!chainId) return null
+    const chainIdString = parseInt(chainId)
+    return addressList[chainIdString]["TokenVesting"][0]
+  }
+
+  const getScheduledObject = (scheduleArray) => {
+    const mapping = {
+      0: "initialized",
+      1: "beneficiary",
+      2: "cliff",
+      3: "vestingStart",
+      4: "vestingEnd",
+      5: "vestingCycle",
+      6: "revocable",
+      7: "allocated",
+      8: "released",
+      9: "revoked",
+      10: "identifier",
+    }
+    return scheduleArray.reduce((prev, current, indx) => {
+      return { ...prev, ...{ [mapping[indx]]: current } }
+    }, {})
+  }
+
+  //--------------------------------------------------/
 
   return (
     <Box as="section" height="100vh" width="100%" overflowY="auto" mx="auto">
@@ -52,8 +198,8 @@ export const VestingDashboard = () => {
               width="100%">
               <Card mt="10" width="100%">
                 <span>
-                  <Text fontWeight="bold">Vested till date</Text>
-                  <Text fontSize="2xl">{vested}</Text>
+                  <Text fontWeight="bold">Total Allocated</Text>
+                  <Text fontSize="2xl">{allocated}</Text>
                 </span>
               </Card>
               <Card mt="10" width="100%">
@@ -64,8 +210,8 @@ export const VestingDashboard = () => {
               </Card>
               <Card mt="10" width="100%">
                 <span>
-                  <Text fontWeight="bold">To-be-vested</Text>
-                  <Text fontSize="2xl">{unvested}</Text>
+                  <Text fontWeight="bold">Pending Release</Text>
+                  <Text fontSize="2xl">{pending}</Text>
                 </span>
               </Card>
             </SimpleGrid>
@@ -73,11 +219,16 @@ export const VestingDashboard = () => {
 
           <VStack mt="10" spacing="4">
             <Heading as="h4" fontSize="xl">
-              Breakdown
+              Vesting Breakdown
             </Heading>
-            <Card>
-              <VestingScheduleTable />
-            </Card>
+            {schedules &&
+              schedules.map((schedule) => (
+                <VestingSummaryCard
+                  schedule={schedule}
+                  updateSchedule={setUpdateSchedules}
+                  // revoke={<Button>Revoke</Button>}
+                />
+              ))}
           </VStack>
         </Box>
       )}
