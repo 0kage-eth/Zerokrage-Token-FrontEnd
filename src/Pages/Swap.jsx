@@ -134,7 +134,7 @@ export const Swap = () => {
    * @param {any} e error description
    */
   const errorHandler = (e) => {
-    console.log(e)
+    console.log(e.message)
     // insert error notification here
     toast({
       title: `Error`,

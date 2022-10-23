@@ -1,13 +1,15 @@
-import { Box, Heading, Button, Icon, useToast } from "@chakra-ui/react"
+import { Box, Heading, Button, useToast } from "@chakra-ui/react"
 import { useMoralis, useWeb3Contract } from "react-moralis"
 import { getNetworkName } from "../../utils/misc"
 import { JobCard } from "../../components/cards/JobCard"
-import { GoPencil } from "react-icons/go"
 import { JOBS } from "../../constants"
 import { useState, useEffect } from "react"
 import { VestingAgreementModal } from "./VestingAgreementModal"
 import vestingContractAbi from "../../contracts/localhost_TokenVesting.json"
+import vestingContractAbiGoerli from "../../contracts/goerli_TokenVesting.json"
+
 import addressList from "../../contracts/addresses.json"
+import { EmptyWaitingModal } from "../../components/modals/EmptyWaitingModal"
 
 let vestingSchedules = [] // list of all vesting schedules for current beneficiary
 
@@ -16,13 +18,12 @@ export const VestingEnter = () => {
   const networkName = getNetworkName(chainId)
   const numChainId = parseInt(chainId)
   const toast = useToast()
-  const [isConfirming, setIsConfirming] = useState(false)
 
   // Setting abis and addresses
 
   const vestingAbi =
     networkName && networkName === "goerli"
-      ? vestingContractAbi
+      ? vestingContractAbiGoerli
       : vestingContractAbi // TO DO - create and insert goerli address
 
   const [isModalOpen, setIsModalOpen] = useState(false)
@@ -143,7 +144,6 @@ export const VestingEnter = () => {
       isClosable: true,
       duration: 9000,
     })
-    setIsConfirming(false)
     // insert error notification here
   }
 
@@ -233,6 +233,7 @@ export const VestingEnter = () => {
           />
         </Box>
       )}
+      <EmptyWaitingModal isOpen={isLoading} />
     </Box>
   )
 }

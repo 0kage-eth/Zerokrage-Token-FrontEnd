@@ -9,9 +9,11 @@ import {
   HStack,
   Button,
   Input,
+  Spinner,
   Badge,
   useToast,
   FormErrorMessage,
+  Tooltip,
 } from "@chakra-ui/react"
 import { useEffect } from "react"
 import { useForm } from "react-hook-form"
@@ -24,8 +26,8 @@ import { useState } from "react"
 import zeroKageLocalAbi from "../contracts/localhost_ZeroKage.json"
 import zeroKageGoerliAbi from "../contracts/localhost_ZeroKage.json"
 import stakeLocalAbi from "../contracts/localhost_StakingRewards.json"
-//import stakeGoerliAbi from "../contracts/goerli_DEX.json"
-import rKageLocalAbi from "../contracts/localhost_r0Kage.json"
+import stakeGoerliAbi from "../contracts/goerli_StakingRewards.json"
+
 import { getNetworkName } from "../utils/misc"
 import addressList from "../contracts/addresses.json"
 import { ethers } from "ethers"
@@ -39,22 +41,16 @@ export const Staking = () => {
   const { account, chainId } = useMoralis()
   const toast = useToast()
   const numChainId = parseInt(chainId)
-
-  console.log("chain Id", chainId)
   const networkName = getNetworkName(chainId)
 
+  //******************* ABIs and Addresses ********************/
   const zKageAbi =
     networkName && networkName === "goerli"
       ? zeroKageGoerliAbi
       : zeroKageLocalAbi
 
-  // TO DO - NEED TO ADD GOERLI ADDRESSES
   const stakingAbi =
-    networkName && networkName === "goerli" ? stakeLocalAbi : stakeLocalAbi
-
-  // TO DO - NEED TO ADD GOERLI ADDRESSES
-  const rKageAbi =
-    networkName && networkName === "goerli" ? rKageLocalAbi : rKageLocalAbi
+    networkName && networkName === "goerli" ? stakeGoerliAbi : stakeLocalAbi
 
   const chainIdString = chainId && parseInt(chainId)
 
@@ -65,6 +61,9 @@ export const Staking = () => {
     ? addressList[chainIdString]["StakingRewards"][0]
     : null
 
+  //--------------------------------------------------/
+
+  //************ STATE VARIABLES & HOOKS ********************/
   const [stakedTokens, setStakedTokens] = useState(0)
   const [tokenBalance, setTokenBalance] = useState(0)
 
@@ -87,8 +86,10 @@ export const Staking = () => {
     handleSubmit: handleSubmit2,
   } = useForm()
 
-  const { runContractFunction, isLoading } = useWeb3Contract()
+  const { runContractFunction, isLoading, isFetching } = useWeb3Contract()
   const apiParams = { abi: stakingAbi, contractAddress: stakeAddress }
+
+  //-------------------------------------------------------------//
 
   //******************* USE EFFECT **************/
 
@@ -133,10 +134,6 @@ export const Staking = () => {
       runContractFunction({
         params: tokenParams,
         onSuccess: (values) => {
-          console.log(
-            "total balance",
-            roundDecimals(ethers.utils.formatEther(values), 6)
-          )
           setTokenBalance(roundDecimals(ethers.utils.formatEther(values), 6))
           setIsUpdateTokenBalances(false)
         },
@@ -297,7 +294,16 @@ export const Staking = () => {
   const unstake = (values) => {
     const unstakeValue = values.unstakeValue
     console.log("unstake value", unstakeValue)
-
+    if (unstakeValue <= 0) {
+      toast({
+        title: `Error`,
+        status: "error",
+        description: "Invalid amount to unstake",
+        isClosable: true,
+        duration: 9000,
+      })
+      return
+    }
     const unstakeOptions = {
       ...apiParams,
       functionName: "unstake",
@@ -338,9 +344,12 @@ export const Staking = () => {
         <Container>
           <Card mt="10" width="400">
             <HStack justify="space-between">
-              <Text fontSize="md" fontWeight="bold">
-                Stake 0Kage
-              </Text>
+              <Tooltip label="Stake any amount upto your token balance">
+                <Text fontSize="md" fontWeight="bold">
+                  Stake 0Kage
+                </Text>
+              </Tooltip>
+
               <HStack spacing="4" justify="end">
                 <Badge variant="subtle" colorScheme="blue">
                   {`Balance: ${tokenBalance} 0KAGE`}
@@ -362,18 +371,28 @@ export const Staking = () => {
                   <VStack>
                     <Input
                       placeholder="Enter amt in Eth terms"
+                      type="number"
                       {...register("stakeValue", {
                         required: {
                           value: true,
                           message: "Specify amount to stake",
                         },
+                        min: {
+                          value: 0.000000001,
+                          message: "Invalid stake amount",
+                        },
+                        max: {
+                          value: tokenBalance,
+                          message: "Staked tokens exceed current token balance",
+                        },
                       })}
                     />
+                    {console.log("error msg", errors?.stakeValue?.message)}
                     <FormErrorMessage>
                       {errors?.stakeValue?.message}
                     </FormErrorMessage>
                   </VStack>
-                  <ErrorTemplate errors={errors} />
+                  {/* <ErrorTemplate errors={errors} /> */}
                 </HStack>
               </FormControl>
               <VStack spacing="2" mt="10" width="100%">
@@ -386,8 +405,19 @@ export const Staking = () => {
                   type="submit"
                   colorScheme="blue"
                   variant="solid"
-                  width="inherit">
-                  Stake 0Kage
+                  width="inherit"
+                  isDisabled={isLoading || isFetching || isConfirming}>
+                  {isFetching ? (
+                    <Spinner
+                      thickness="4px"
+                      speed="0.65s"
+                      emptyColor="gray.200"
+                      color="blue.500"
+                      size="md"
+                    />
+                  ) : (
+                    "Stake 0Kage"
+                  )}
                 </Button>
               </VStack>
             </form>
@@ -395,9 +425,11 @@ export const Staking = () => {
 
           <Card mt="10" width="400">
             <HStack spacing="4">
-              <Text fontSize="md" fontWeight="bold">
-                Unstake 0Kage
-              </Text>
+              <Tooltip label="You can only unstake if there is an existing stake balance.">
+                <Text fontSize="md" fontWeight="bold">
+                  Unstake 0Kage
+                </Text>
+              </Tooltip>
               <Badge variant="subtle" colorScheme="green">
                 {`Staked: ${stakedTokens} 0KAGE`}
               </Badge>
@@ -416,6 +448,7 @@ export const Staking = () => {
                     </Button>
                   </HStack>
                   <Input
+                    placeholder="Enter amount to unstake"
                     {...register2("unstakeValue", {
                       required: { value: true, message: "Enter LP tokens" },
                       min: { value: 0, message: "Invalid value" },
@@ -438,8 +471,19 @@ export const Staking = () => {
                   colorScheme="blue"
                   variant="solid"
                   type="submit"
-                  mt="10">
-                  Unstake 0Kage
+                  mt="10"
+                  isDisabled={isLoading || isFetching || isConfirming}>
+                  {isFetching ? (
+                    <Spinner
+                      thickness="4px"
+                      speed="0.65s"
+                      emptyColor="gray.200"
+                      color="blue.500"
+                      size="md"
+                    />
+                  ) : (
+                    "Unstake 0Kage"
+                  )}
                 </Button>
               </form>
             </Box>

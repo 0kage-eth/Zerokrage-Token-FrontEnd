@@ -2,18 +2,21 @@ import { Card } from "../../components/cards/Card"
 import { useMoralis, useWeb3Contract } from "react-moralis"
 import { getNetworkName } from "../../utils/misc"
 import { useState, useEffect } from "react"
-import { VestingScheduleTable } from "./VestingScheduleTable"
+// import { VestingScheduleTable } from "./VestingScheduleTable"
+import { EmptyWaitingModal } from "../../components/modals/EmptyWaitingModal"
 import { ethers } from "ethers"
 import vestingContractAbi from "../../contracts/localhost_TokenVesting.json"
+import vestingContractAbiGoerli from "../../contracts/goerli_TokenVesting.json"
+
 import {
   Box,
-  Center,
+  // Center,
   VStack,
-  HStack,
+  // HStack,
   Text,
   Heading,
-  Button,
-  Container,
+  // Button,
+  // Container,
   SimpleGrid,
   useToast,
 } from "@chakra-ui/react"
@@ -31,13 +34,12 @@ export const VestingDashboard = () => {
   const [released, setReleased] = useState(0)
   const [pending, setPending] = useState(0)
   const [schedules, setSchedules] = useState([])
-  const [isConfirming, setIsConfirming] = useState(false)
   const [updateschedules, setUpdateSchedules] = useState(true)
   const { runContractFunction, isLoading, isFetching } = useWeb3Contract()
   const vestingAbi =
     networkName && networkName === "goerli"
-      ? vestingContractAbi
-      : vestingContractAbi // TO DO - create and insert goerli address
+      ? vestingContractAbiGoerli
+      : vestingContractAbi
 
   //***************** USE EFFECT FUNCTIONS ************** */
 
@@ -136,7 +138,6 @@ export const VestingDashboard = () => {
       isClosable: true,
       duration: 9000,
     })
-    setIsConfirming(false)
     // insert error notification here
   }
 
@@ -232,6 +233,7 @@ export const VestingDashboard = () => {
           </VStack>
         </Box>
       )}
+      <EmptyWaitingModal isOpen={isLoading} />
     </Box>
   )
 }

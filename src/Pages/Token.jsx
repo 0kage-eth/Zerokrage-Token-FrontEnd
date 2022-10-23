@@ -26,6 +26,7 @@ import { DecreaseApproval } from "../components/functional/DecreaseApproval"
 export const Token = () => {
   const networkName = "" //library.network.name
   const { chainId, account } = useMoralis()
+  const numChainId = parseInt(chainId)
   const chainIdString = parseInt(chainId).toString()
   const [balance, setBalance] = useState(0)
 
@@ -64,6 +65,11 @@ export const Token = () => {
       {(!chainId || !account) && (
         <Heading as="h2" fontSize="2xl" my="auto" textAlign="center" mt="10">
           Please connect your wallet
+        </Heading>
+      )}
+      {numChainId !== 5 && numChainId !== 31337 && (
+        <Heading as="h2" fontSize="2xl" my="auto" textAlign="10" mt="10">
+          Invalid chain. Please switch to Goerli
         </Heading>
       )}
       {chainId && account && (

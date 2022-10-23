@@ -7,11 +7,14 @@ import {
   Flex,
   Button,
   Stack,
+  Spinner,
   Tooltip,
   useToast,
   useColorModeValue,
 } from "@chakra-ui/react"
 import vestingContractAbi from "../../contracts/localhost_TokenVesting.json"
+import vestingContractAbiGoerli from "../../contracts/goerli_TokenVesting.json"
+
 import { useState, useEffect } from "react"
 import {
   dateFormatddMMMyy,
@@ -31,26 +34,38 @@ export const VestingSummaryCard = ({ schedule, updateSchedule }) => {
   const [releasable, setReleasable] = useState("0")
   const [id, setId] = useState(null)
   const [isConfirming, setIsConfirming] = useState(false)
-
+  const [updateReleasable, setUpdateReleasable] = useState(true)
   // Setting abis and addresses
 
   const vestingAbi =
     networkName && networkName === "goerli"
-      ? vestingContractAbi
-      : vestingContractAbi // TO DO - create and insert goerli address
+      ? vestingContractAbiGoerli
+      : vestingContractAbi
 
   // ************************* USE EFFECT CALLS ***************************
 
   useEffect(() => {
-    console.log(`pending release called for schedule ${schedule.identifier}`)
-    getPendingRelease()
-  }, [account, chainId])
+    if (updateReleasable) {
+      getPendingRelease()
+    }
+  }, [account, chainId, updateReleasable])
 
   // --------------------------------------------------------------
 
   // ************************* API CALLS ***************************
 
   const release = () => {
+    if (releasable == 0) {
+      toast({
+        title: `Error`,
+        status: "error",
+        description:
+          "Looks like you don't have enough vested tokens to release",
+        isClosable: true,
+        duration: 9000,
+      })
+      return
+    }
     const vestingAddress = getVestingAddress()
     const apiParams = { abi: vestingAbi, contractAddress: vestingAddress }
     if (id && vestingAddress) {
@@ -110,8 +125,10 @@ export const VestingSummaryCard = ({ schedule, updateSchedule }) => {
 
       runContractFunction({
         params: getParams,
-        onSuccess: (amount) =>
-          setReleasable(roundDecimals(ethers.utils.formatEther(amount), 6)),
+        onSuccess: (amount) => {
+          setReleasable(roundDecimals(ethers.utils.formatEther(amount), 6))
+          setUpdateReleasable(false) // this is now updated
+        },
         onError: (e) => errorHandler(e),
       })
     }
@@ -132,6 +149,7 @@ export const VestingSummaryCard = ({ schedule, updateSchedule }) => {
       duration: 9000,
     })
     updateSchedule(true)
+    setUpdateReleasable(false)
   }
   const errorHandler = (e) => {
     // insert error notification here
@@ -184,8 +202,21 @@ export const VestingSummaryCard = ({ schedule, updateSchedule }) => {
                 {schedule.role}
               </Heading>
               <Tooltip label="Click here to release your pending vested amount till date">
-                <Button colorScheme="blue" onClick={() => release()}>
-                  Release
+                <Button
+                  colorScheme="blue"
+                  onClick={() => release()}
+                  isDisabled={isFetching || isLoading || isConfirming}>
+                  {isFetching || isLoading || isConfirming ? (
+                    <Spinner
+                      thickness="4px"
+                      speed="0.65s"
+                      emptyColor="gray.200"
+                      color="blue.500"
+                      size="md"
+                    />
+                  ) : (
+                    "Release"
+                  )}
                 </Button>
               </Tooltip>
               {/* {revoke} */}

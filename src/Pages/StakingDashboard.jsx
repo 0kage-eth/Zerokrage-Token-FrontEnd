@@ -9,8 +9,11 @@ import {
   Tabs,
   TabPanel,
   TabList,
+  useToast,
   TabPanels,
   Tab,
+  Spinner,
+  Tooltip,
 } from "@chakra-ui/react"
 import { useMoralis, useWeb3Contract } from "react-moralis"
 import { useState, useEffect } from "react"
@@ -18,57 +21,40 @@ import { useState, useEffect } from "react"
 import { Card } from "../components/cards/Card"
 import { Stat } from "../components/dashboard/Stat"
 
-import zeroKageLocalAbi from "../contracts/localhost_ZeroKage.json"
-import zeroKageGoerliAbi from "../contracts/localhost_ZeroKage.json"
 import stakeLocalAbi from "../contracts/localhost_StakingRewards.json"
-//import stakeGoerliAbi from "../contracts/goerli_DEX.json"
-import rKageLocalAbi from "../contracts/localhost_r0Kage.json"
+import stakeGoerliAbi from "../contracts/goerli_StakingRewards.json"
 import { getNetworkName } from "../utils/misc"
 import addressList from "../contracts/addresses.json"
+import { WaitingModal } from "../components/modals/WaitingModal"
 
 import { ethers } from "ethers"
 import { roundDecimals } from "../utils/web3-formats"
 
 export const StakingDashboard = () => {
+  //******* State Initialization & Variables ******************//
+
   const { account, chainId } = useMoralis()
   const [staked, setStaked] = useState("0")
   const [accruedReward, setAccruredReward] = useState("0")
   const [redeemableReward, setRedeemableReward] = useState("0")
-  const [updateStake, setUpdateStake] = useState(true)
-  const [updateAccrued, setUpdateAccrued] = useState(true)
-  const [updateReward, setUpdateReward] = useState(true)
+  const [updateStats, setUpdateStats] = useState(true)
+  const [isConfirming, setIsConfirming] = useState(false)
   const numChainId = parseInt(chainId)
   const chainIdString = chainId && parseInt(chainId)
   const networkName = getNetworkName(chainId)
-  const { runContractFunction, isLoading } = useWeb3Contract()
+  const { runContractFunction, isLoading, isFetching } = useWeb3Contract()
+  const toast = useToast()
 
   //******* Contract ABIs and addresses ******************//
 
-  const zKageAbi =
-    networkName && networkName === "goerli"
-      ? zeroKageGoerliAbi
-      : zeroKageLocalAbi
-
-  // TO DO - NEED TO ADD GOERLI ADDRESSES
   const stakingAbi =
-    networkName && networkName === "goerli" ? stakeLocalAbi : stakeLocalAbi
-
-  // TO DO - NEED TO ADD GOERLI ADDRESSES
-  const rKageAbi =
-    networkName && networkName === "goerli" ? rKageLocalAbi : rKageLocalAbi
-
-  const zKageAddress = chainIdString
-    ? addressList[chainIdString]["ZeroKage"][0]
-    : null
+    networkName && networkName === "goerli" ? stakeGoerliAbi : stakeLocalAbi
 
   const stakeAddress = chainIdString
     ? addressList[chainIdString]["StakingRewards"][0]
     : null
 
-  const rKageAddress = chainIdString
-    ? addressList[chainIdString]["r0Kage"][0]
-    : null
-  //******************************************************//
+  //-------------------------------------------------------//
 
   //***************** USE EFFECT FUNCTIONS ***************//
 
@@ -80,72 +66,72 @@ export const StakingDashboard = () => {
    */
 
   useEffect(() => {
-    // get staked tokens
-
-    if (updateStake) {
-      const stakeOptions = {
-        abi: stakingAbi,
-        contractAddress: stakeAddress,
-        functionName: "getStakingBalance",
-        params: { staker: account },
-      }
-
-      runContractFunction({
-        params: stakeOptions,
-        onSuccess: (values) => {
-          setStaked(roundDecimals(ethers.utils.formatEther(values), 6))
-          setUpdateStake(false)
-        },
-        onError: (e) => console.log(e),
-      })
-    }
-  }, [account, chainId, updateStake])
-
-  useEffect(() => {
-    // get accrued reward tokens
-    if (updateAccrued) {
-      const accureRewardsOptions = {
-        abi: stakingAbi,
-        contractAddress: stakeAddress,
-        functionName: "getStakerAccruedRewards",
-        params: {},
-      }
-
-      runContractFunction({
-        params: accureRewardsOptions,
-        onSuccess: (values) => {
-          console.log("returning accrued reward output", values)
-          setAccruredReward(roundDecimals(ethers.utils.formatEther(values), 6))
-          setUpdateAccrued(false)
-        },
-        onError: (e) => console.log(e),
-      })
-    }
-  }, [account, chainId])
-
-  useEffect(() => {
-    // get redeemable reward tokens
-    if (updateReward) {
-      const redeemableRewardsOptions = {
-        abi: stakingAbi,
-        contractAddress: stakeAddress,
-        functionName: "getStakerReward",
-        params: { staker: account },
-      }
-
-      runContractFunction({
-        params: redeemableRewardsOptions,
-        onSuccess: (values) => {
-          console.log("returning redeem reward output", values)
-          setRedeemableReward(
-            roundDecimals(ethers.utils.formatEther(values), 6)
+    if (updateStats) {
+      Promise.all([
+        updateStakedBalance(),
+        updateAccruedRewards(),
+        updateRedeemableRewards(),
+      ])
+        .then(([stakeOutput, accruedRewardOutput, redeemableRewardOutput]) => {
+          setStaked(roundDecimals(ethers.utils.formatEther(stakeOutput), 6))
+          setAccruredReward(
+            roundDecimals(ethers.utils.formatEther(accruedRewardOutput), 6)
           )
-          setUpdateReward(false)
-        },
-        onError: (e) => console.log(e),
-      })
+          setRedeemableReward(
+            roundDecimals(ethers.utils.formatEther(redeemableRewardOutput), 6)
+          )
+
+          setUpdateStats(false)
+        })
+        .catch(errorHandler)
     }
-  }, [account, chainId])
+  }, [account, chainId, updateStats])
+
+  //-----------------------------------------------------------//
+
+  //***************** API FUNCTIONS ***************//
+
+  const updateStakedBalance = () => {
+    if (!chainId) return
+    const stakeOptions = {
+      abi: stakingAbi,
+      contractAddress: stakeAddress,
+      functionName: "getStakingBalance",
+      params: { staker: account },
+    }
+
+    return runContractFunction({
+      params: stakeOptions,
+    })
+  }
+
+  const updateAccruedRewards = () => {
+    if (!chainId) return
+    const accureRewardsOptions = {
+      abi: stakingAbi,
+      contractAddress: stakeAddress,
+      functionName: "getStakerAccruedRewards",
+      params: {},
+    }
+
+    return runContractFunction({
+      params: accureRewardsOptions,
+    })
+  }
+
+  const updateRedeemableRewards = () => {
+    if (!chainId) return
+    const redeemableRewardsOptions = {
+      abi: stakingAbi,
+      contractAddress: stakeAddress,
+      functionName: "getStakerReward",
+      params: { staker: account },
+    }
+
+    return runContractFunction({
+      params: redeemableRewardsOptions,
+    })
+  }
 
   const redeemRewardsHandler = () => {
     const redeemRewardsOptions = {
@@ -157,16 +143,44 @@ export const StakingDashboard = () => {
 
     runContractFunction({
       params: redeemRewardsOptions,
-      onSuccess: (values) => {
-        setRedeemableReward(roundDecimals(ethers.utils.formatEther(values), 6))
-        setUpdateReward(true)
-        setUpdateAccrued(true)
+      onSuccess: (response) => {
+        redeemResponseHandler(response)
       },
       onError: (e) => console.log(e),
     })
   }
+  //----------------------------------------------------------------------//
 
-  //-----------------------------------------------------------//
+  //************************ CALL BACK FUNCTIONS **************************/
+  const redeemResponseHandler = async (response) => {
+    setIsConfirming(true)
+    await response.wait(1)
+    setIsConfirming(false)
+    setUpdateStats(true)
+    // setUpdateReward(true)
+    // setUpdateAccrued(true)
+  }
+
+  /**
+   * @notice handles errors generated by any API function
+   * @param {any} e error description
+   */
+  const errorHandler = (e) => {
+    // insert error notification here
+    const errorMsg = e.message
+
+    toast({
+      title: `Error`,
+      status: "error",
+      description: errorMsg,
+      isClosable: true,
+      duration: 9000,
+    })
+    setIsConfirming(false)
+    // insert error notification here
+  }
+  //--------------------------------------------------------------------//
+
   return (
     <Box as="section" height="100vh" width={1200} overflowY="auto" mx="auto">
       {(!account || !chainId) && (
@@ -188,20 +202,40 @@ export const StakingDashboard = () => {
               Your Stats
             </Text>
             <SimpleGrid columns="3" spacing="10">
-              <Stat label="Current Staked 0Kage" value={staked} />
+              <Stat
+                label="Current Staked 0Kage"
+                value={staked}
+                tooltip="Total 0Kage staked"
+              />
               <Stat
                 label="Accrued Rewards"
                 value={accruedReward - redeemableReward}
+                tooltip="Accrued rewards that would become redeemable if user unstakes at this moment"
               />
-              <Stat label="Redeemable Rewards" value={redeemableReward} />
+              <Stat
+                label="Redeemable Rewards"
+                value={redeemableReward}
+                tooltip="Redeemable rewards that user can transfer to her wallet. Click on 'Redeem Rewards' to do so"
+              />
             </SimpleGrid>
             <Center>
               <Button
                 size="sm"
                 colorScheme="blue"
                 mt="10"
-                onClick={redeemRewardsHandler}>
-                Redeem Rewards
+                onClick={redeemRewardsHandler}
+                isDisabled={isFetching || isLoading}>
+                {isFetching || isLoading || isConfirming ? (
+                  <Spinner
+                    thickness="4px"
+                    speed="0.65s"
+                    emptyColor="gray.200"
+                    color="blue.500"
+                    size="md"
+                  />
+                ) : (
+                  "Redeem Rewards"
+                )}
               </Button>
             </Center>
           </Card>
@@ -226,6 +260,10 @@ export const StakingDashboard = () => {
               </TabPanels>
             </Tabs>
           </Card>
+          <WaitingModal
+            isOpen={isConfirming}
+            network={getNetworkName(chainId)}
+          />
         </Container>
       )}
     </Box>

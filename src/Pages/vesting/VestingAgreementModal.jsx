@@ -7,17 +7,17 @@ import {
   ModalBody,
   ModalCloseButton,
   useDisclosure,
+  Spinner,
   Button,
   useToast,
 } from "@chakra-ui/react"
 import { useState } from "react"
 import { useMoralis, useWeb3Contract } from "react-moralis"
 import vestingContractAbi from "../../contracts/localhost_TokenVesting.json"
+import vestingContractAbiGoerli from "../../contracts/goerli_TokenVesting.json"
 import addressList from "../../contracts/addresses.json"
 import { ethers } from "ethers"
-import { roundDecimals } from "../../utils/web3-formats"
 import { getNetworkName } from "../../utils/misc"
-import { JOBS } from "../../constants"
 import { convertMonthsToSeconds } from "../../utils/misc"
 import { ProductFeaturesTable } from "../../components/table/VestingAgreementTable"
 
@@ -37,8 +37,8 @@ export const VestingAgreementModal = ({
   // Setting abis and addresses
   const vestingAbi =
     networkName && networkName === "goerli"
-      ? vestingContractAbi
-      : vestingContractAbi // TO DO - create and insert goerli address
+      ? vestingContractAbiGoerli
+      : vestingContractAbi
 
   const toast = useToast()
 
@@ -143,8 +143,22 @@ export const VestingAgreementModal = ({
         </ModalBody>
 
         <ModalFooter>
-          <Button colorScheme="blue" mr={3} onClick={onSignVesting}>
-            Sign Contract
+          <Button
+            colorScheme="blue"
+            mr={3}
+            onClick={onSignVesting}
+            isDisabled={isConfirming}>
+            {isFetching || isLoading || isConfirming ? (
+              <Spinner
+                thickness="4px"
+                speed="0.65s"
+                emptyColor="gray.200"
+                color="blue.500"
+                size="md"
+              />
+            ) : (
+              "Sign Contract"
+            )}
           </Button>
           <Button variant="ghost" onClick={onClose}>
             Cancel
