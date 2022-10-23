@@ -93,7 +93,7 @@ export const ProtocolLotteryStats = () => {
   return (
     <VStack>
       <Heading as="h3" fontSize="xl">
-        History
+        History TBD (Dummy Data)
       </Heading>
 
       {table(dummyLotteryDataHeaders, dummyLotteryData)}

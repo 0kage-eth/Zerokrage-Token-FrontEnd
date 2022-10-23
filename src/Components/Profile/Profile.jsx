@@ -14,6 +14,7 @@ import {
 } from "@chakra-ui/react"
 import { useColorModeValue } from "@chakra-ui/react"
 import { Card } from "../cards/Card"
+import { ContactModal } from "../modals/ContactModal"
 
 export const Profile = () => {
   return (
@@ -30,12 +31,13 @@ export const Profile = () => {
                 src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQsPu6EkQxHDSn7-1qiYqeeP7mTN5a-JDz2Mw&usqp=CAU"
                 name="0Kage" //drive.google.com/file/d/15sFpQYAMXYYihWryFdPfsVyul0dDlRT6/view?usp=sharing"
               />
-              <Button
+              <ContactModal />
+              {/* <Button
                 width="full"
                 colorScheme="blue"
                 display={{ base: "none", md: "initial" }}>
                 Contact me
-              </Button>
+              </Button> */}
             </Stack>
             <Box>
               <Stack

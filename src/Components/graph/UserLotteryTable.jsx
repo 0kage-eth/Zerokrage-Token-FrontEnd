@@ -93,7 +93,7 @@ export const UserLotteryTable = () => {
   return (
     <VStack>
       <Heading as="h3" fontSize="xl">
-        History (dummy data)
+        History TBD (dummy data)
       </Heading>
 
       {table(dummyLotteryDataHeaders, dummyLotteryData)}

@@ -141,3 +141,11 @@ export const JOBS = [
     cycle: "1", // in months
   },
 ]
+
+export const EMAIL = "0Kage.eth@gmail.com"
+export const GITHUB = "https://github.com/0kage-eth"
+export const TWITTER = "https://twitter.com/0kage_eth"
+export const NOTION =
+  "https://wonderful-newsprint-e13.notion.site/0KAGE-85a73c4b2ed445dfa7d6fbd7e80bbf91"
+export const MIRROR =
+  "https://mirror.xyz/0xd7Dd548772fF126999a1a02640beFA34C2ce470B"

@@ -7,8 +7,10 @@ import {
   OrderedList,
   Link,
   ListItem,
+  Tooltip,
   Tag,
   TagLabel,
+  Spinner,
   Input,
   SimpleGrid,
   Button,
@@ -27,8 +29,9 @@ import { CountdownTimer } from "../../components/misc/Countdown"
 import { Tile } from "../../components/dashboard/Tile"
 import { Link as RouterLink } from "react-router-dom"
 import lotteryContractAbi from "../../contracts/localhost_SmartLottery0Kage.json"
+import lotteryContractAbiGoerli from "../../contracts/goerli_SmartLottery0Kage.json"
 import zeroKageLocalAbi from "../../contracts/localhost_ZeroKageMock.json"
-import zeroKageGoerliAbi from "../../contracts/localhost_ZeroKageMock.json"
+import zeroKageGoerliAbi from "../../contracts/goerli_ZeroKage.json"
 
 import addressList from "../../contracts/addresses.json"
 import { ethers } from "ethers"
@@ -40,8 +43,6 @@ export const LotteryEnter = () => {
 
   const networkName = getNetworkName(chainId)
   const numChainId = parseInt(chainId)
-
-  // TO DO - NEED TO ADD GOERLI ADDRESSES
 
   const [allowanceApproved, setAllowanceApproved] = useState(false)
   const [entryFee, setEntryFee] = useState("0")
@@ -64,10 +65,10 @@ export const LotteryEnter = () => {
     formState: { errors },
   } = useForm()
 
-  const { runContractFunction, isLoading } = useWeb3Contract()
+  const { runContractFunction, isFetching, isLoading } = useWeb3Contract()
   const lotteryAbi =
     networkName && networkName === "goerli"
-      ? lotteryContractAbi
+      ? lotteryContractAbiGoerli
       : lotteryContractAbi
 
   const zKageAbi =
@@ -323,6 +324,7 @@ export const LotteryEnter = () => {
   }
 
   const seekApproval = (values) => {
+    if (!chainId) return
     const approvalAmount = values.numTickets * parseFloat(entryFee)
     const tokenAmount = ethers.utils.parseEther(approvalAmount.toString())
 
@@ -442,18 +444,43 @@ export const LotteryEnter = () => {
                 </FormControl>
                 <VStack spacing="2" mt="10" width="100%">
                   {!allowanceApproved && (
-                    <Button type="submit" variant="outline" width="inherit">
-                      Approve
-                    </Button>
+                    <Tooltip label="You need to first approve this contract to access 0Kage tokens in your wallet">
+                      <Button type="submit" variant="outline" width="inherit">
+                        {isFetching || isLoading || isConfirming ? (
+                          <Spinner
+                            thickness="4px"
+                            speed="0.65s"
+                            emptyColor="gray.200"
+                            color="blue.500"
+                            size="md"
+                          />
+                        ) : (
+                          "Approve"
+                        )}
+                      </Button>
+                    </Tooltip>
                   )}
-                  <Button
-                    type="submit"
-                    colorScheme="blue"
-                    variant="solid"
-                    width="inherit"
-                    disabled={!allowanceApproved}>
-                    Enter
-                  </Button>
+                  {allowanceApproved && (
+                    <Tooltip label="You can now spend 0Kage tokens you approved in previous step">
+                      <Button
+                        type="submit"
+                        colorScheme="blue"
+                        variant="solid"
+                        width="inherit">
+                        {isFetching || isLoading || isConfirming ? (
+                          <Spinner
+                            thickness="4px"
+                            speed="0.65s"
+                            emptyColor="gray.200"
+                            color="blue.500"
+                            size="md"
+                          />
+                        ) : (
+                          "Enter Lottery"
+                        )}
+                      </Button>
+                    </Tooltip>
+                  )}
                 </VStack>
               </form>
             </Card>
