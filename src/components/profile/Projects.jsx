@@ -20,7 +20,7 @@ export const Projects = () => {
     <Box as="section" py="12" w="300">
       <Card>
         <Text as="h2" fontWeight="bold" fontSize="xl">
-          My Projects
+          My Applications
         </Text>
         {/* <Center maxW="sm" mx="auto" py={{ base: "4", md: "8" }}> */}
         <Box bg="bg-surface" py="4">

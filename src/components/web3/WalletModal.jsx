@@ -56,17 +56,22 @@ export const WalletModal = ({
           <ModalHeader>Choose Wallet</ModalHeader>
           <ModalCloseButton />
           <ModalBody>
-            <SimpleGrid columns={2} spacing={10}>
+            <SimpleGrid columns={2} spacing={4}>
               {connectors.map(({ title, icon, provider }, key) => {
                 return (
-                  <Button
+                  // <Button
+                  //   key={key}
+                  //   onClick={() => {
+                  //     connectWallet(provider)
+                  //   }}>
+                  <SingleWallet
+                    title={title}
+                    icon={icon}
+                    provider={provider}
+                    connectWallet={connectWallet}
                     key={key}
-                    onClick={() => {
-                      console.log(provider)
-                      connectWallet(provider)
-                    }}>
-                    <SingleWallet title={title} provider={provider} key={key} />
-                  </Button>
+                  />
+                  // </Button>
                 )
               })}
             </SimpleGrid>

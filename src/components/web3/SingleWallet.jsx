@@ -1,16 +1,32 @@
-import { Box, Text, useColorModeValue } from "@chakra-ui/react"
+import {
+  Box,
+  VStack,
+  Button,
+  Text,
+  useColorModeValue,
+  Icon,
+} from "@chakra-ui/react"
 
-export const SingleWallet = ({ title }) => {
+export const SingleWallet = ({ title, icon, provider, connectWallet, key }) => {
   return (
     <Box
-      maxW="xl"
+      width="180px"
       mx="auto"
       bg={useColorModeValue("white", "gray.700")}
       rounded={{ md: "xl" }}
       padding="10"
       shadow={{ md: "base" }}
       px={{ base: "6", md: "8" }}>
-      <Text>{title}</Text>
+      <VStack spacing="4">
+        <Icon as={icon} />
+        <Button
+          key={key}
+          onClick={() => {
+            connectWallet(provider)
+          }}>
+          {title}
+        </Button>
+      </VStack>
     </Box>
   )
 }

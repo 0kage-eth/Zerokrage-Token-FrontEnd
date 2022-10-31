@@ -1,6 +1,6 @@
 import React from "react"
 
-const WC = () => {
+export const WC = () => {
   return (
     <svg
       width="65"

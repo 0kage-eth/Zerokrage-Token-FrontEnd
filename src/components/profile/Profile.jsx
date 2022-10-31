@@ -80,8 +80,8 @@ export const Profile = () => {
               </HStack>
             </Wrap> */}
               <Box fontSize="sm" noOfLines={2}>
-                Hi, I am a former finance professional and a self-taught full
-                stack developer.
+                Hi. I am a builder looking to work on interesting Defi projects.
+                Here are some applications I built..
               </Box>
               <Wrap
                 shouldWrapChildren
@@ -125,31 +125,13 @@ export const Profile = () => {
               primitives
             </ListItem>
             <ListItem>
-              You can find all projects on my
+              You can find source code of all projects on my
               <Link
                 href="https://github.com/0kage-eth"
                 color="blue.500"
                 isExternal
                 px="1">
                 git repo
-              </Link>
-            </ListItem>
-            <ListItem>
-              You can find me on
-              <Link
-                href="	https://medium.com/@0kage"
-                color="blue.500"
-                isExternal
-                px="1">
-                Medium
-              </Link>{" "}
-              and
-              <Link
-                href="https://twitter.com/0kage_eth"
-                color="blue.500"
-                isExternal
-                px="1">
-                Twitter
               </Link>
             </ListItem>
           </UnorderedList>

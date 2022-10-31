@@ -1,6 +1,6 @@
 import React from "react"
 
-const TokenPocket = () => {
+export const TokenPocket = () => {
   return (
     <svg
       width="40"

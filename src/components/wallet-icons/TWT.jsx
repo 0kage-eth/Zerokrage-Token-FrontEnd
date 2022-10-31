@@ -1,6 +1,6 @@
 import React from "react"
 
-const TWT = () => {
+export const TWT = () => {
   return (
     <svg
       width="41"

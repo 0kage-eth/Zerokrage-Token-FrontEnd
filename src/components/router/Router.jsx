@@ -17,11 +17,16 @@ import { LotteryDashboard } from "../../pages/lottery/LotteryDashboard"
 import { VestingHome } from "../../pages/vesting/VestingHome"
 import { VestingEnter } from "../../pages/vesting/VestingEnter"
 import { VestingDashboard } from "../../pages/vesting/VestingDashboard"
+import { ComingSoon } from "../../pages/Soon"
 
 export const routerConfig = createBrowserRouter([
   {
     path: "/",
     element: <Home />,
+  },
+  {
+    path: "soon",
+    element: <ComingSoon />,
   },
   {
     path: "main",
