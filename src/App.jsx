@@ -2,6 +2,7 @@ import * as React from "react"
 import { Box, useColorModeValue } from "@chakra-ui/react"
 import { RouterProvider, createBrowserRouter } from "react-router-dom"
 // import { routerConfig } from "./components/router/Router"
+import { Home } from "./pages/Home"
 
 const router = createBrowserRouter([
   {
