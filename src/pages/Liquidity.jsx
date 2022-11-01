@@ -103,7 +103,7 @@ export const Liquidity = () => {
    * @notice this also should be updated when user adds liquidity or account is changed
    */
   useEffect(() => {
-    if (isUpdateLPTokens) {
+    if (isUpdateLPTokens && chainId && account) {
       const liquidParams = {
         ...apiParams,
         functionName: "getLiquidity",
@@ -119,7 +119,7 @@ export const Liquidity = () => {
         onError: (e) => console.log(e),
       })
     }
-  }, [isUpdateLPTokens, account])
+  }, [isUpdateLPTokens, chainId, account])
 
   //****************** EVENT HANDLER FUNCTIONS *****************/
 

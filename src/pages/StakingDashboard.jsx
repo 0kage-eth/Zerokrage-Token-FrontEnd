@@ -66,7 +66,7 @@ export const StakingDashboard = () => {
    */
 
   useEffect(() => {
-    if (updateStats) {
+    if (updateStats && chainId & account) {
       Promise.all([
         updateStakedBalance(),
         updateAccruedRewards(),

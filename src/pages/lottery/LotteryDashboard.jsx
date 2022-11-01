@@ -51,7 +51,7 @@ export const LotteryDashboard = () => {
   //********************** USE EFFECT FUNCTIONS *****************//
 
   useEffect(() => {
-    if (!chainId) return
+    if (!chainId || !account) return
 
     getEpoch()
     // Promise.all([getEpoch()])

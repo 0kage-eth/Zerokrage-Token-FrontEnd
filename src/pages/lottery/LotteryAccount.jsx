@@ -48,7 +48,7 @@ export const LotteryAccount = () => {
   const toast = useToast()
   //********************** USE EFFECT FUNCTIONS *****************//
   useEffect(() => {
-    if (!chainId) return
+    if (!chainId || !account) return
 
     getReward(account)
   }, [account, chainId])

@@ -45,7 +45,7 @@ export const VestingSummaryCard = ({ schedule, updateSchedule }) => {
   // ************************* USE EFFECT CALLS ***************************
 
   useEffect(() => {
-    if (updateReleasable) {
+    if (updateReleasable && chainId && account) {
       getPendingRelease()
     }
   }, [account, chainId, updateReleasable])

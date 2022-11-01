@@ -24,7 +24,6 @@ export const DexDashboard = () => {
   const [totalTokens, setTotalTokens] = useState("0")
 
   const numChainId = parseInt(chainId)
-  console.log("chain id", numChainId)
   useEffect(() => {
     // calculate account liquidity
     // calculate % share of total

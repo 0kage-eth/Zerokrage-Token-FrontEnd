@@ -78,7 +78,7 @@ export const LotteryEnter = () => {
   //***************************** USE EFFECT FUCNTIONS ************/
 
   useEffect(() => {
-    if (!chainId) return
+    if (!chainId || !account) return
     Promise.all([
       getNumTickets(),
       getPotSize(),
@@ -96,7 +96,7 @@ export const LotteryEnter = () => {
   }, [account, chainId, updateStats])
 
   useEffect(() => {
-    if (!chainId) return
+    if (!chainId || !account) return
 
     // get lottery fee here`
     const lotteryAddress = getLotteryAddress()

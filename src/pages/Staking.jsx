@@ -99,7 +99,7 @@ export const Staking = () => {
    * @dev isUpdateStakingBalance will be updated everytime Stake or Unstake API calls are triggered
    */
   useEffect(() => {
-    if (isUpdateTokenBalances) {
+    if (isUpdateTokenBalances && chainId && account) {
       const stakingParams = {
         ...apiParams,
         functionName: "getStakingBalance",
@@ -123,7 +123,7 @@ export const Staking = () => {
    * @dev isUpdateTokenBalances will be updated everytime Stake or Unstake API calls are triggered
    */
   useEffect(() => {
-    if (isUpdateTokenBalances) {
+    if (isUpdateTokenBalances && chainId && account) {
       const tokenParams = {
         abi: zKageAbi,
         contractAddress: zKageAddress,

@@ -8,9 +8,10 @@ import { useEffect } from "react"
 export const Events = () => {
   const { account, chainId } = useMoralis()
 
-  useEffect(() => {
-    return
-  }, [account, chainId])
+  // useEffect(() => {
+  //   return
+  // }, [account, chainId])
+
   return (
     <Box as="section" height="100vh" overflowY="auto" mx="auto">
       {(!chainId || !account) && (

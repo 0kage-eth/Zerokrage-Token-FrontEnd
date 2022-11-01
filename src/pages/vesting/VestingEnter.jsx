@@ -38,7 +38,7 @@ export const VestingEnter = () => {
   const { runContractFunction, isLoading, isFetching } = useWeb3Contract()
 
   useEffect(() => {
-    if (!schedulesUpdated) {
+    if (!schedulesUpdated && chainId && account) {
       vestingSchedules = [] // re-initialize back to empty array - figure if there is better way
       getVestingSchedulesForBeneficiary()
     }

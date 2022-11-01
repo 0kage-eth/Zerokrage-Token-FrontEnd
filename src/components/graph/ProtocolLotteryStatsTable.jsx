@@ -1,12 +1,8 @@
-import { useMoralis } from "react-moralis"
-import { SimpleTable } from "../table/SimpleTable"
-import { useState, useEffect } from "react"
 import {
   Heading,
   VStack,
   Text,
   Table,
-  TableProps,
   Tbody,
   Td,
   Th,

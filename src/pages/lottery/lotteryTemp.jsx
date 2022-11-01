@@ -82,14 +82,13 @@ export const LotteryEnterTemp = () => {
   //***************************** USE EFFECT FUCNTIONS ************/
 
   useEffect(() => {
-    if (!chainId) return
+    if (!chainId || !account) return
 
     // get lottery fee here`
     const lotteryAddress = getLotteryAddress()
 
     const apiParams = { abi: lotteryAbi, contractAddress: lotteryAddress }
 
-    console.log("api params", apiParams)
     getLotteryFees(apiParams)
 
     getLotteryStartDate(apiParams)
@@ -99,24 +98,24 @@ export const LotteryEnterTemp = () => {
 
   // updates all stats once any new action happens on platform
   useEffect(() => {
-    if (!chainId) return
+    if (!chainId || !account) return
     getNumTickets()
   }, [account, chainId, updateNumTickets])
 
   useEffect(() => {
-    if (!chainId) return
+    if (!chainId || !account) return
 
     getPlayerTickets()
   }, [account, chainId, updatePlayerTickets])
 
   useEffect(() => {
-    if (!chainId) return
+    if (!chainId || !account) return
 
     getPotSize()
   }, [account, chainId, updatePotsize])
 
   useEffect(() => {
-    if (!chainId) return
+    if (!chainId || !account) return
 
     getParticipants()
   }, [account, chainId, updateParticipants])

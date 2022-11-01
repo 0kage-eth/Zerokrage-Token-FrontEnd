@@ -44,11 +44,10 @@ export const VestingDashboard = () => {
   //***************** USE EFFECT FUNCTIONS ************** */
 
   useEffect(() => {
-    if (!chainId) return
+    if (!chainId || !account) return
     if (updateschedules) {
       Promise.all([allMetrics(), getVestingSchedulesForBeneficiary()])
         .then(([metrics, schedules]) => {
-          console.log("schedules in useEffect dashboard", schedules)
           successHandler(metrics)
           schedulesHandler(schedules)
           setUpdateSchedules(false)

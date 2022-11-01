@@ -46,6 +46,7 @@ export const Token = () => {
   }
 
   useEffect(() => {
+    if (!chainId || !account) return
     balanceUpdate()
   }, [account, chainId])
 
